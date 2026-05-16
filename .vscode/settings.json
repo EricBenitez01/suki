@@ -1,0 +1,13 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.singleQuote": true,
+  "editor.wordWrap": "on",
+  "files.eol": "\n",
+  "emmet.includeLanguages": { "javascript": "javascriptreact" },
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "workbench.iconTheme": "material-icon-theme",
+  "explorer.compactFolders": false
+}
