@@ -102,7 +102,7 @@ export function calcularComparativa(inputs) {
     despachantePct, despachanteMín, gastosOperativos, digitalizacion, sim,
     handlingAereo,
     depositoFiscal, recargIMOFlete, recargIMODeposito, handlingMaritimo,
-    fleteAereoKgUSD, fleteMarItimoWMRate,
+    fleteAereoKgUSD, fleteAereoModo, fleteAereoCotizacion, fleteMarItimoWMRate,
   } = inputs
 
   if (!fob || !unidades || !pesoKg || di === '' || di === undefined) return null
@@ -113,7 +113,10 @@ export function calcularComparativa(inputs) {
   // ── AÉREO (courier DAP) ───────────────────────────────────────
   // DHL/FedEx hace el despacho incluido — no hay despachante, gastos operativos, digitaliz. ni SIM.
   const pFactAereo = pesoFacturableAereo({ pesoKg, largoCm, anchoCm, altoCm, bultos })
-  const fleteAereo = pFactAereo * fleteAereoKgUSD
+  const fleteAereo =
+    fleteAereoModo === 'directo' && fleteAereoCotizacion
+      ? Number(fleteAereoCotizacion)
+      : pFactAereo * fleteAereoKgUSD
   const seguroAereo = fob * (seguroPctAereo / 100)
   const cifAereo = fob + fleteAereo + seguroAereo
   const taxesAereo = aplicarImpuestos(cifAereo, taxParams)

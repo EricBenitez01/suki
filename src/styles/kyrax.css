@@ -268,6 +268,37 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
+/* ─── Pill toggle ────────────────────────────────────────────────────────────── */
+.pill-toggle {
+  display: flex;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.pill-toggle button {
+  flex: 1;
+  padding: 7px 10px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: var(--font-sans);
+}
+
+.pill-toggle button + button {
+  border-left: 1.5px solid var(--line);
+}
+
+.pill-toggle button.active {
+  background: var(--brand);
+  color: white;
+}
+
 /* ─── Advanced toggle ────────────────────────────────────────────────────────── */
 .advanced-toggle {
   display: flex;

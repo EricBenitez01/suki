@@ -35,6 +35,8 @@ const initialValues = {
   recargIMODeposito: DEFAULTS.recargIMODeposito,
   handlingMaritimo: DEFAULTS.handlingMaritimo,
   fleteAereoKgUSD: DEFAULTS.fleteAereoKgUSD,
+  fleteAereoModo: 'calculado',
+  fleteAereoCotizacion: '',
   fleteMarItimoWMRate: DEFAULTS.fleteMarItimoWMRate,
 }
 

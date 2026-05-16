@@ -71,6 +71,38 @@ export default function InputPanel({ values, onChange }) {
           <p className="form-hint">Courier: divisor /5000 · Marítimo: W/M (ton o m³, el mayor)</p>
         </div>
 
+        <div className="form-section">Flete aéreo</div>
+        <div className="pill-toggle">
+          <button
+            className={values.fleteAereoModo === 'calculado' ? 'active' : ''}
+            onClick={() => onChange({ ...values, fleteAereoModo: 'calculado' })}
+            type="button"
+          >
+            Por kg·vol
+          </button>
+          <button
+            className={values.fleteAereoModo === 'directo' ? 'active' : ''}
+            onClick={() => onChange({ ...values, fleteAereoModo: 'directo' })}
+            type="button"
+          >
+            Cotización directa
+          </button>
+        </div>
+        {values.fleteAereoModo === 'directo' ? (
+          <div className="form-group">
+            <label className="form-label">Flete DHL / FedEx <span>USD total</span></label>
+            <input className="form-input mono" type="number" min="0" step="0.01"
+              placeholder="0.00"
+              value={values.fleteAereoCotizacion}
+              onChange={set('fleteAereoCotizacion')} />
+            <p className="form-hint">Total del flete tal como te lo cotizó el proveedor.</p>
+          </div>
+        ) : (
+          <p className="form-hint" style={{ marginBottom: 10 }}>
+            Flete calculado: peso facturable × USD {values.fleteAereoKgUSD}/kg·vol (configurable en avanzado).
+          </p>
+        )}
+
         <div className="form-section">Arancel</div>
 
         <div className="form-row">
