@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "PowerShell(Get-Command node -ErrorAction SilentlyContinue; Test-Path \"C:\\\\Program Files\\\\nodejs\\\\node.exe\"; Test-Path \"$env:APPDATA\\\\nvm\\\\nvm.exe\")",
+      "PowerShell($url = \"https://nodejs.org/dist/v22.15.0/node-v22.15.0-x64.msi\"; $out = \"$env:TEMP\\\\node-install.msi\"; Invoke-WebRequest -Uri $url -OutFile $out; Write-Host \"Downloaded: $out\")",
+      "PowerShell(Start-Process msiexec.exe -ArgumentList \"/i `\"$env:TEMP\\\\node-install.msi`\" /quiet /norestart ADDLOCAL=ALL\" -Wait -Verb RunAs; Write-Host \"Done\")",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"User\"\\); node --version; npm --version)",
+      "PowerShell([System.IO.Directory]::GetFiles\\(\"C:\\\\Program Files\\\\nodejs\"\\) | Select-Object -First 5)",
+      "PowerShell($nvmPath = \"$env:APPDATA\\\\nvm\"; Test-Path $nvmPath; if \\(Test-Path $nvmPath\\) { Get-ChildItem $nvmPath | Select-Object Name })",
+      "PowerShell($nvmHome = [System.Environment]::GetEnvironmentVariable\\(\"NVM_HOME\", \"User\"\\); $nvmSymlink = [System.Environment]::GetEnvironmentVariable\\(\"NVM_SYMLINK\", \"User\"\\); Write-Host \"NVM_HOME: $nvmHome\"; Write-Host \"NVM_SYMLINK: $nvmSymlink\")",
+      "PowerShell($url = \"https://nodejs.org/dist/v22.15.0/node-v22.15.0-win-x64.zip\"; $out = \"$env:TEMP\\\\node.zip\"; Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing; Write-Host \"Downloaded\")",
+      "Bash(xargs ls *)",
+      "Bash(python3 -c \" import sys, json counts = {} for line in sys.stdin: try: obj = json.loads\\(line\\) msg = obj.get\\('message', {}\\) if msg.get\\('role'\\) == 'assistant': for c in msg.get\\('content', []\\): if c.get\\('type'\\) == 'tool_use': name = c.get\\('name', ''\\) if name == 'Bash': cmd = c.get\\('input', {}\\).get\\('command', ''\\) tok = cmd.strip\\(\\).split\\(\\)[0] if cmd.strip\\(\\) else '' key = 'Bash\\(' + tok + '\\)' else: key = name counts[key] = counts.get\\(key, 0\\) + 1 except: pass for k,v in sorted\\(counts.items\\(\\), key=lambda x:-x[1]\\): print\\(v, k\\) \")",
+      "Bash(awk '{print $1}')",
+      "PowerShell(Test-Path \"$env:TEMP\\\\node.zip\")",
+      "PowerShell(Expand-Archive -Path \"$env:TEMP\\\\node.zip\" -DestinationPath \"C:\\\\tools\" -Force; Write-Host \"Extracted\")",
+      "PowerShell([System.IO.Directory]::GetDirectories\\(\"C:\\\\tools\"\\))",
+      "PowerShell($env:PATH = \"C:\\\\tools\\\\node-v22.15.0-win-x64;\" + $env:PATH; cd \"C:\\\\Users\\\\HP\\\\Desktop\\\\Suki\"; & \"C:\\\\tools\\\\node-v22.15.0-win-x64\\\\npm.cmd\" install 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\tools\\\\node-v22.15.0-win-x64;\" + $env:PATH; cd \"C:\\\\Users\\\\HP\\\\Desktop\\\\Suki\"; & \"C:\\\\tools\\\\node-v22.15.0-win-x64\\\\npm.cmd\" install --strict-ssl=false 2>&1)",
+      "PowerShell($url = \"https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user\"; $out = \"$env:TEMP\\\\vscode-installer.exe\"; Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing; Write-Host \"Downloaded: $out\")",
+      "PowerShell($env:PATH = \"C:\\\\tools\\\\node-v22.15.0-win-x64;\" + $env:PATH; cd \"C:\\\\Users\\\\HP\\\\Desktop\\\\Suki\"; & \"C:\\\\tools\\\\node-v22.15.0-win-x64\\\\npm.cmd\" run dev 2>&1)",
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell(Start-Process -FilePath \"$env:TEMP\\\\vscode-installer.exe\" -ArgumentList \"/VERYSILENT /NORESTART /MERGETASKS=!runcode,addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath\" -Wait -Verb RunAs; Write-Host \"Done\")",
+      "PowerShell($codePath = \"$env:LOCALAPPDATA\\\\Programs\\\\Microsoft VS Code\\\\bin\"; Test-Path \"$codePath\\\\code.cmd\"; & \"$codePath\\\\code.cmd\" --version 2>&1 | Select-Object -First 1)",
+      "mcp__23e17b31-c5e6-446e-8c20-7ab888ff4594__read_file_content",
+      "PowerShell(gh auth status 2>&1)",
+      "PowerShell(& \"$env:LOCALAPPDATA\\\\Programs\\\\Microsoft VS Code\\\\bin\\\\code.cmd\" \"C:\\\\Users\\\\HP\\\\Desktop\\\\Suki\" 2>&1; Write-Host \"VS Code launched\")"
+    ]
+  }
+}

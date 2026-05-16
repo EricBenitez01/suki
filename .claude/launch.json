@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "suki-dev",
+      "runtimeExecutable": "C:\\tools\\node-v22.15.0-win-x64\\node.exe",
+      "runtimeArgs": ["C:\\Users\\HP\\Desktop\\Suki\\node_modules\\vite\\bin\\vite.js"],
+      "port": 5173
+    }
+  ]
+}
