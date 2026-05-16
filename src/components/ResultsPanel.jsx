@@ -1,7 +1,26 @@
 import { fmtUSD, fmtARS, fmt } from '../lib/calculations.js'
 import PricingPanel from './PricingPanel.jsx'
 
+function CostBar({ mode, fob, flete, impuestos, gastos, total }) {
+  const pctFob = (fob / total * 100).toFixed(1)
+  const pctFlete = (flete / total * 100).toFixed(1)
+  const pctImp = (impuestos / total * 100).toFixed(1)
+  const pctGastos = (gastos / total * 100).toFixed(1)
+  return (
+    <div className="cost-bar-wrap">
+      <div className="cost-bar-label">
+        <span>Composición del costo</span>
+        <span>FOB {pctFob}% · Flete {pctFlete}% · Imp {pctImp}% · Op {pctGastos}%</span>
+      </div>
+      <div className="cost-bar-track">
+        <div className={`cost-bar-fill ${mode}`} style={{ width: `${100 - parseFloat(pctFob)}%` }} />
+      </div>
+    </div>
+  )
+}
+
 function ModeCard({ mode, data, label, icon }) {
+  const flete = mode === 'aereo' ? data.fleteAereo : data.fleteMaritimo
   return (
     <div className={`mode-card ${mode}`}>
       <div className="mode-card-header">
@@ -29,7 +48,7 @@ function ModeCard({ mode, data, label, icon }) {
         </div>
         <div className="kpi-row">
           <span className="kpi-row-label">Flete</span>
-          <span className="kpi-row-value">{fmtUSD(mode === 'aereo' ? data.fleteAereo : data.fleteMaritimo)}</span>
+          <span className="kpi-row-value">{fmtUSD(flete)}</span>
         </div>
         <div className="kpi-row">
           <span className="kpi-row-label">Impuestos aduaneros</span>
@@ -39,6 +58,14 @@ function ModeCard({ mode, data, label, icon }) {
           <span className="kpi-row-label">Gastos operativos</span>
           <span className="kpi-row-value">{fmtUSD(data.gastosTotal)}</span>
         </div>
+        <CostBar
+          mode={mode}
+          fob={data.fob}
+          flete={flete}
+          impuestos={data.totalImpuestos}
+          gastos={data.gastosTotal}
+          total={data.totalUSD}
+        />
       </div>
     </div>
   )
@@ -99,7 +126,7 @@ export default function ResultsPanel({ results, producto }) {
   const { aereo, maritimo } = results
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <>
       <SavingsBanner aereo={aereo} maritimo={maritimo} />
 
       <div className="comparison-grid">
@@ -187,6 +214,6 @@ export default function ResultsPanel({ results, producto }) {
       )}
 
       <PricingPanel aereo={aereo} maritimo={maritimo} />
-    </div>
+    </>
   )
 }

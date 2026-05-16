@@ -67,13 +67,21 @@ export default function App() {
     <div className="app-shell">
       <Header />
       <main className="app-main">
-        <h1 className="page-title">Comparativa de flete</h1>
-        <p className="page-subtitle">
-          Calculá el costo landed total por aéreo y marítimo, incluyendo todos los impuestos de importación.
-        </p>
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Comparativa de flete</h1>
+            <p className="page-subtitle">
+              Calculá el costo landed total por aéreo y marítimo, incluyendo todos los impuestos de importación.
+            </p>
+          </div>
+        </div>
         <div className="layout-cols">
-          <InputPanel values={values} onChange={handleChange} />
-          <ResultsPanel results={results} producto={values.producto} />
+          <div className="sidebar-sticky">
+            <InputPanel values={values} onChange={handleChange} />
+          </div>
+          <div className="results-stack">
+            <ResultsPanel results={results} producto={values.producto} />
+          </div>
         </div>
       </main>
     </div>
