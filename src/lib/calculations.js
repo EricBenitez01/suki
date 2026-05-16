@@ -28,10 +28,8 @@ export const DEFAULTS = {
   digitalizacion: 40,
   sim: 10,                 // Impuesto Sistema María
 
-  // Específicos AÉREO (courier)
-  handlingAereo: 60,       // USD 60 + IVA
-  almacenajeKgDia: 0.80,   // USD 0.80 x kg x día
-  almacenajeDias: 4,       // días estimados en depósito
+  // Específicos AÉREO (courier DAP — DHL/FedEx hace el despacho)
+  handlingAereo: 60,       // gastos courier/DHL (procesamiento aduanero, combustible, etc.)
 
   // Específicos MARÍTIMO LCL
   depositoFiscal: 800,     // estimado dentro del forzoso
@@ -102,7 +100,7 @@ export function calcularComparativa(inputs) {
     seguroPctAereo, seguroPctMaritimo,
     tasaEstadisticaPct, ivaPct, ivaAdicionalPct, gananciasPct, iibbPct,
     despachantePct, despachanteMín, gastosOperativos, digitalizacion, sim,
-    handlingAereo, almacenajeKgDia, almacenajeDias,
+    handlingAereo,
     depositoFiscal, recargIMOFlete, recargIMODeposito, handlingMaritimo,
     fleteAereoKgUSD, fleteMarItimoWMRate,
   } = inputs
@@ -112,18 +110,16 @@ export function calcularComparativa(inputs) {
   const taxParams = { di, tasaEstadisticaPct, ivaPct, ivaAdicionalPct, gananciasPct, iibbPct }
   const cbm = calcCBM({ largoCm, anchoCm, altoCm, bultos })
 
-  // ── AÉREO (courier) ──────────────────────────────────────────
+  // ── AÉREO (courier DAP) ───────────────────────────────────────
+  // DHL/FedEx hace el despacho incluido — no hay despachante, gastos operativos, digitaliz. ni SIM.
   const pFactAereo = pesoFacturableAereo({ pesoKg, largoCm, anchoCm, altoCm, bultos })
   const fleteAereo = pFactAereo * fleteAereoKgUSD
   const seguroAereo = fob * (seguroPctAereo / 100)
   const cifAereo = fob + fleteAereo + seguroAereo
   const taxesAereo = aplicarImpuestos(cifAereo, taxParams)
 
-  // Despachante courier (1.5% CIF, mín USD 400)
-  const despachanteCourier = Math.max(cifAereo * (despachantePct / 100), despachanteMín)
-  const almacenaje = almacenajeKgDia * Math.ceil(pFactAereo) * almacenajeDias
-
-  const gastosAereoTotal = despachanteCourier + gastosOperativos + digitalizacion + sim + handlingAereo + almacenaje
+  // Solo gastos de gestión courier (cargo DHL por procesamiento/handling)
+  const gastosAereoTotal = handlingAereo
 
   const totalAereo = cifAereo + taxesAereo.totalImpuestos + gastosAereoTotal
 
@@ -149,8 +145,7 @@ export function calcularComparativa(inputs) {
       fob, fleteAereo, seguro: seguroAereo, cif: cifAereo,
       pesoFacturable: pFactAereo, pesoVol: pesoVolCourier({ largoCm, anchoCm, altoCm, bultos }),
       cbm,
-      despachante: despachanteCourier, gastosOperativos, digitalizacion, sim,
-      handlingAereo, almacenaje, almacenajeDias, almacenajeKgDia,
+      handlingAereo,
       gastosTotal: gastosAereoTotal,
       totalUSD: totalAereo,
       totalARS: totalAereo * tc,

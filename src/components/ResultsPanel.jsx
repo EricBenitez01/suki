@@ -175,17 +175,15 @@ export default function ResultsPanel({ results, producto }) {
                 aereo={fmtUSD(aereo.iibbAmt)} maritimo={fmtUSD(maritimo.iibbAmt)} indent />
 
               {/* GASTOS OPERATIVOS */}
-              <Row sectionHead label="Gastos operativos y despacho" />
+              <Row sectionHead label="Gastos operativos" />
+              <Row label="Gestión aduanera courier (DHL/FedEx incluido en DAP)"
+                aereo={fmtUSD(aereo.handlingAereo)} maritimo="—" />
               <Row label="Honorarios despachante (1.5% CIF, mín USD 400)"
-                aereo={fmtUSD(aereo.despachante)} maritimo={fmtUSD(maritimo.despachante)} />
-              <Row label="Gastos operativos"
-                aereo={fmtUSD(aereo.gastosOperativos)} maritimo={fmtUSD(maritimo.gastosOperativos)} />
-              <Row label="Digitalización + SIM"
-                aereo={fmtUSD(aereo.digitalizacion + aereo.sim)} maritimo={fmtUSD(maritimo.digitalizacion + maritimo.sim)} />
-              <Row label={`Handling (courier USD ${fmt(aereo.handlingAereo)} / agencia USD ${fmt(maritimo.handlingMaritimo)})`}
-                aereo={fmtUSD(aereo.handlingAereo)} maritimo={fmtUSD(maritimo.handlingMaritimo)} />
-              <Row label={`Almacenaje (${fmt(aereo.pesoFacturable,1)} kg × USD ${fmt(aereo.almacenaje / aereo.pesoFacturable / (aereo.almacenaje > 0 ? 1 : 0) || 0.8,2)}/kg·día)`}
-                aereo={fmtUSD(aereo.almacenaje)} maritimo="—" />
+                aereo="—" maritimo={fmtUSD(maritimo.despachante)} />
+              <Row label="Gastos operativos + digitalización + SIM"
+                aereo="—" maritimo={fmtUSD(maritimo.gastosOperativos + maritimo.digitalizacion + maritimo.sim)} />
+              <Row label={`Handling agencia marítima`}
+                aereo="—" maritimo={fmtUSD(maritimo.handlingMaritimo)} />
               <Row label="Desconsolidación (USD 25×W/M, mín 50, máx 350)"
                 aereo="—" maritimo={fmtUSD(maritimo.desconsolidacion)} />
               <Row label="Depósito fiscal (estimado)"

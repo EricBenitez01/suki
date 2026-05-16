@@ -159,18 +159,13 @@ export default function InputPanel({ values, onChange }) {
             </div>
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Handling <span>USD</span></label>
+                <label className="form-label">Gestión courier <span>USD</span></label>
                 <input className="form-input mono" type="number" min="0" step="10"
                   value={values.handlingAereo} onChange={set('handlingAereo')} />
               </div>
-              <div className="form-group">
-                <label className="form-label">Almacenaje <span>días</span></label>
-                <input className="form-input mono" type="number" min="1" step="1"
-                  value={values.almacenajeDias} onChange={set('almacenajeDias')} />
-              </div>
             </div>
             <p className="form-hint" style={{marginBottom:10}}>
-              Almacenaje: USD {values.almacenajeKgDia}/kg·día × peso facturable × días
+              Cargo flat del courier (DHL/FedEx) por procesamiento aduanero — el despacho viene incluido en DAP.
             </p>
 
             <div className="form-section" style={{color:'var(--maritimo)'}}>🚢 Marítimo (LCL)</div>

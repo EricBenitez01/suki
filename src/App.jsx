@@ -30,8 +30,6 @@ const initialValues = {
   digitalizacion: DEFAULTS.digitalizacion,
   sim: DEFAULTS.sim,
   handlingAereo: DEFAULTS.handlingAereo,
-  almacenajeKgDia: DEFAULTS.almacenajeKgDia,
-  almacenajeDias: DEFAULTS.almacenajeDias,
   depositoFiscal: DEFAULTS.depositoFiscal,
   recargIMOFlete: DEFAULTS.recargIMOFlete,
   recargIMODeposito: DEFAULTS.recargIMODeposito,
