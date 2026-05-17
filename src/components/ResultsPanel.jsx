@@ -184,7 +184,7 @@ function BreakdownTable({ aereo, maritimo, producto }) {
   )
 }
 
-export default function ResultsPanel({ results, producto }) {
+export default function ResultsPanel({ results, producto, onSave, savedFlash }) {
   const [tab, setTab] = useState('flete')
   const [showBreakdown, setShowBreakdown] = useState(false)
 
@@ -239,6 +239,13 @@ export default function ResultsPanel({ results, producto }) {
           onClick={() => setTab('pricing')}
         >
           💰 Pricing ML
+        </button>
+        <button
+          className="btn-sm primary"
+          style={{ marginLeft: 'auto', alignSelf: 'center' }}
+          onClick={onSave}
+        >
+          {savedFlash ? '✓ Guardado' : '💾 Guardar'}
         </button>
       </div>
 

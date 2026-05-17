@@ -693,6 +693,155 @@ body {
 }
 .tc-rate-btn:hover { background: var(--brand-light); border-color: var(--brand-mid); color: var(--brand); }
 
+/* ─── Header nav ─────────────────────────────────────────────────────────────── */
+.header-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.header-nav button {
+  padding: 5px 14px;
+  border-radius: 5px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  color: var(--ink-mute);
+  transition: all 0.15s;
+  font-family: var(--font-sans);
+}
+
+.header-nav button.active {
+  background: var(--bg);
+  color: var(--brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-nav button:hover:not(.active) { color: var(--ink-soft); }
+
+/* ─── Sim grid ───────────────────────────────────────────────────────────────── */
+.sim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+}
+
+.sim-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.sim-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.sim-card-top {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sim-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 99px;
+  margin-bottom: 8px;
+}
+
+.sim-card-badge.aereo { background: var(--aereo-bg); color: var(--aereo); }
+.sim-card-badge.maritimo { background: var(--maritimo-bg); color: var(--maritimo); }
+
+.sim-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.2px;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sim-card-meta {
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+}
+
+.sim-card-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sim-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.sim-mode-row.aereo { background: var(--aereo-bg); }
+.sim-mode-row.maritimo { background: var(--maritimo-bg); }
+
+.sim-mode-row .label {
+  font-weight: 600;
+  color: var(--ink-soft);
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.sim-mode-row.aereo .label { color: var(--aereo); }
+.sim-mode-row.maritimo .label { color: var(--maritimo); }
+
+.sim-mode-row .val-usd {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.sim-mode-row .val-unit {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+}
+
+.sim-saving {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pos);
+  text-align: right;
+  padding: 0 2px;
+}
+
+.sim-card-footer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-soft);
+}
+
 /* ─── Breakeven table ────────────────────────────────────────────────────────── */
 .breakeven-row-ok td { color: var(--pos) !important; }
 .breakeven-row-warn td { color: var(--warn) !important; }

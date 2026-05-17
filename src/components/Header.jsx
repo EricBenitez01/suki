@@ -1,4 +1,4 @@
-export default function Header() {
+export default function Header({ view, onChangeView }) {
   return (
     <header className="app-header">
       <div className="header-brand">
@@ -8,7 +8,21 @@ export default function Header() {
         <span className="header-app">Suki</span>
       </div>
       <div className="header-right">
-        <span className="header-version">v0.1.0</span>
+        <nav className="header-nav">
+          <button
+            className={view === 'cotizacion' ? 'active' : ''}
+            onClick={() => onChangeView('cotizacion')}
+          >
+            Nueva cotización
+          </button>
+          <button
+            className={view === 'historial' ? 'active' : ''}
+            onClick={() => onChangeView('historial')}
+          >
+            📋 Historial
+          </button>
+        </nav>
+        <span className="header-version">v0.2.0</span>
       </div>
     </header>
   )
