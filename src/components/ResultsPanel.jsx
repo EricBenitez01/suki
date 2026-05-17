@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { fmtUSD, fmtARS, fmt } from '../lib/calculations.js'
 import PricingPanel from './PricingPanel.jsx'
 
@@ -106,16 +107,115 @@ function Row({ label, aereo, maritimo, bold, total, sectionHead, indent }) {
   )
 }
 
+function BreakdownTable({ aereo, maritimo, producto }) {
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <div className="card-header">Desglose completo — {producto || 'Producto'}</div>
+      <div style={{ overflowX: 'auto' }}>
+        <table className="breakdown-table">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th style={{ color: 'var(--aereo)' }}>✈ Aéreo (USD)</th>
+              <th style={{ color: 'var(--maritimo)' }}>🚢 Marítimo (USD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <Row sectionHead label="Base" />
+            <Row label="FOB" aereo={fmtUSD(aereo.fob)} maritimo={fmtUSD(maritimo.fob)} />
+            <Row
+              label={`Flete (${fmt(aereo.pesoFacturable,2)} kg·vol /5000 · W/M ${fmt(maritimo.wm,3)})`}
+              aereo={fmtUSD(aereo.fleteAereo)}
+              maritimo={fmtUSD(maritimo.fleteMaritimo)}
+            />
+            <Row label="Recargo IMO" aereo="—" maritimo={fmtUSD(maritimo.recargIMOFlete)} />
+            <Row label="Seguro internacional" aereo={fmtUSD(aereo.seguro)} maritimo={fmtUSD(maritimo.seguro)} />
+            <Row label="CIF" aereo={fmtUSD(aereo.cif)} maritimo={fmtUSD(maritimo.cif)} bold />
+
+            <Row sectionHead label="Impuestos aduaneros (sobre CIF)" />
+            <Row label={`DI (${fmt(aereo.diAmt / aereo.cif * 100, 1)}%)`}
+              aereo={fmtUSD(aereo.diAmt)} maritimo={fmtUSD(maritimo.diAmt)} />
+            <Row label={`Tasa estadística`}
+              aereo={fmtUSD(aereo.teAmt)} maritimo={fmtUSD(maritimo.teAmt)} />
+            <Row label="Base imponible" aereo={fmtUSD(aereo.baseImponible)} maritimo={fmtUSD(maritimo.baseImponible)} bold />
+            <Row label={`IVA (${fmt(aereo.ivaAmt / aereo.baseImponible * 100, 1)}%)`}
+              aereo={fmtUSD(aereo.ivaAmt)} maritimo={fmtUSD(maritimo.ivaAmt)} indent />
+            <Row label={`IVA Adicional (${fmt(aereo.ivaAddAmt / aereo.baseImponible * 100, 1)}%)`}
+              aereo={fmtUSD(aereo.ivaAddAmt)} maritimo={fmtUSD(maritimo.ivaAddAmt)} indent />
+            <Row label={`Ganancias (${fmt(aereo.ganAmt / aereo.baseImponible * 100, 1)}%)`}
+              aereo={fmtUSD(aereo.ganAmt)} maritimo={fmtUSD(maritimo.ganAmt)} indent />
+            <Row label={`IIBB (${fmt(aereo.iibbAmt / aereo.baseImponible * 100, 1)}%)`}
+              aereo={fmtUSD(aereo.iibbAmt)} maritimo={fmtUSD(maritimo.iibbAmt)} indent />
+
+            <Row sectionHead label="Gastos operativos" />
+            <Row label="Gestión aduanera courier (DHL/FedEx incluido en DAP)"
+              aereo={fmtUSD(aereo.handlingAereo)} maritimo="—" />
+            <Row label="Honorarios despachante (1.5% CIF, mín USD 400)"
+              aereo="—" maritimo={fmtUSD(maritimo.despachante)} />
+            <Row label="Gastos operativos + digitalización + SIM"
+              aereo="—" maritimo={fmtUSD(maritimo.gastosOperativos + maritimo.digitalizacion + maritimo.sim)} />
+            <Row label="Handling agencia marítima"
+              aereo="—" maritimo={fmtUSD(maritimo.handlingMaritimo)} />
+            <Row label="Desconsolidación (USD 25×W/M, mín 50, máx 350)"
+              aereo="—" maritimo={fmtUSD(maritimo.desconsolidacion)} />
+            <Row label="Depósito fiscal (estimado)"
+              aereo="—" maritimo={fmtUSD(maritimo.depositoFiscal)} />
+            <Row label="Recargo IMO depósito"
+              aereo="—" maritimo={fmtUSD(maritimo.recargIMODeposito)} />
+
+            <Row label="TOTAL LANDED (USD)" aereo={fmtUSD(aereo.totalUSD)} maritimo={fmtUSD(maritimo.totalUSD)} total />
+            <Row label="TOTAL LANDED (ARS)" aereo={fmtARS(aereo.totalARS)} maritimo={fmtARS(maritimo.totalARS)} total />
+            <Row label="Costo landed / unidad USD" aereo={fmtUSD(aereo.costoUnitUSD)} maritimo={fmtUSD(maritimo.costoUnitUSD)} total />
+            <Row label="Costo landed / unidad ARS" aereo={fmtARS(aereo.costoUnitARS)} maritimo={fmtARS(maritimo.costoUnitARS)} total />
+          </tbody>
+        </table>
+      </div>
+      {(aereo.cbm > 0 || aereo.pesoVol > 0) && (
+        <div className="card-body" style={{ paddingTop: 8, paddingBottom: 10 }}>
+          <p className="text-mute" style={{ fontSize: 12 }}>
+            Volumen: {fmt(aereo.cbm, 4)} m³ ·
+            Peso vol. courier (/5000): {fmt(aereo.pesoVol, 2)} kg ·
+            Peso facturable courier: {fmt(aereo.pesoFacturable, 2)} kg ·
+            W/M marítimo: {fmt(maritimo.wm, 4)}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ResultsPanel({ results, producto }) {
+  const [tab, setTab] = useState('flete')
+  const [showBreakdown, setShowBreakdown] = useState(false)
+
   if (!results) {
     return (
-      <div className="card">
-        <div className="card-body">
-          <div className="empty-state">
-            <div className="empty-state-icon">⚖️</div>
-            <div className="empty-state-title">Completá los datos del producto</div>
-            <div className="empty-state-text">
-              Ingresá FOB, peso, unidades y % DI para ver la comparativa.
+      <div>
+        <div className="tab-bar">
+          <button className="tab-btn active">✈ 🚢 Flete & Costos</button>
+          <button className="tab-btn" style={{ opacity: 0.4, cursor: 'default' }}>💰 Pricing ML</button>
+        </div>
+        <div className="card">
+          <div className="card-body">
+            <div className="empty-state">
+              <div className="empty-state-icon">⚖️</div>
+              <div className="empty-state-title">Completá los datos del producto</div>
+              <div className="empty-state-text">
+                Ingresá los campos marcados con <strong>*</strong> para ver la comparativa.
+              </div>
+              <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left', maxWidth: 280, margin: '20px auto 0' }}>
+                {[
+                  { icon: '✈ 🚢', text: 'Costo landed aéreo vs marítimo' },
+                  { icon: '📊', text: 'Desglose completo de impuestos' },
+                  { icon: '💰', text: 'Precio de venta óptimo para ML' },
+                  { icon: '📈', text: 'Punto de equilibrio del lote' },
+                ].map(({ icon, text }) => (
+                  <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--ink-soft)' }}>
+                    <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{icon}</span>
+                    <span>{text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -126,92 +226,49 @@ export default function ResultsPanel({ results, producto }) {
   const { aereo, maritimo } = results
 
   return (
-    <>
-      <SavingsBanner aereo={aereo} maritimo={maritimo} />
-
-      <div className="comparison-grid">
-        <ModeCard mode="aereo" data={aereo} label="Aéreo · Courier" icon="✈️" />
-        <ModeCard mode="maritimo" data={maritimo} label="Marítimo · LCL" icon="🚢" />
+    <div>
+      <div className="tab-bar">
+        <button
+          className={`tab-btn ${tab === 'flete' ? 'active' : ''}`}
+          onClick={() => setTab('flete')}
+        >
+          ✈ 🚢 Flete & Costos
+        </button>
+        <button
+          className={`tab-btn ${tab === 'pricing' ? 'active' : ''}`}
+          onClick={() => setTab('pricing')}
+        >
+          💰 Pricing ML
+        </button>
       </div>
 
-      <div className="card">
-        <div className="card-header">Desglose completo — {producto || 'Producto'}</div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="breakdown-table">
-            <thead>
-              <tr>
-                <th>Concepto</th>
-                <th style={{ color: 'var(--aereo)' }}>✈ Aéreo (USD)</th>
-                <th style={{ color: 'var(--maritimo)' }}>🚢 Marítimo (USD)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* BASE */}
-              <Row sectionHead label="Base" />
-              <Row label="FOB" aereo={fmtUSD(aereo.fob)} maritimo={fmtUSD(maritimo.fob)} />
-              <Row
-                label={`Flete (${fmt(aereo.pesoFacturable,2)} kg·vol /5000 · W/M ${fmt(maritimo.wm,3)})`}
-                aereo={fmtUSD(aereo.fleteAereo)}
-                maritimo={fmtUSD(maritimo.fleteMaritimo)}
-              />
-              <Row label="Recargo IMO" aereo="—" maritimo={fmtUSD(maritimo.recargIMOFlete)} />
-              <Row label="Seguro internacional" aereo={fmtUSD(aereo.seguro)} maritimo={fmtUSD(maritimo.seguro)} />
-              <Row label="CIF" aereo={fmtUSD(aereo.cif)} maritimo={fmtUSD(maritimo.cif)} bold />
+      {tab === 'flete' && (
+        <>
+          <SavingsBanner aereo={aereo} maritimo={maritimo} />
 
-              {/* IMPUESTOS */}
-              <Row sectionHead label="Impuestos aduaneros (sobre CIF)" />
-              <Row label={`DI (${fmt(aereo.diAmt / aereo.cif * 100, 1)}%)`}
-                aereo={fmtUSD(aereo.diAmt)} maritimo={fmtUSD(maritimo.diAmt)} />
-              <Row label={`Tasa estadística (${aereo.teAmt > 0 ? fmt(aereo.teAmt / aereo.cif * 100, 1) : 0}%)`}
-                aereo={fmtUSD(aereo.teAmt)} maritimo={fmtUSD(maritimo.teAmt)} />
-              <Row label="Base imponible" aereo={fmtUSD(aereo.baseImponible)} maritimo={fmtUSD(maritimo.baseImponible)} bold />
-              <Row label={`IVA (${fmt(aereo.ivaAmt / aereo.baseImponible * 100, 1)}%)`}
-                aereo={fmtUSD(aereo.ivaAmt)} maritimo={fmtUSD(maritimo.ivaAmt)} indent />
-              <Row label={`IVA Adicional (${fmt(aereo.ivaAddAmt / aereo.baseImponible * 100, 1)}%)`}
-                aereo={fmtUSD(aereo.ivaAddAmt)} maritimo={fmtUSD(maritimo.ivaAddAmt)} indent />
-              <Row label={`Ganancias (${fmt(aereo.ganAmt / aereo.baseImponible * 100, 1)}%)`}
-                aereo={fmtUSD(aereo.ganAmt)} maritimo={fmtUSD(maritimo.ganAmt)} indent />
-              <Row label={`IIBB (${fmt(aereo.iibbAmt / aereo.baseImponible * 100, 1)}%)`}
-                aereo={fmtUSD(aereo.iibbAmt)} maritimo={fmtUSD(maritimo.iibbAmt)} indent />
+          <div className="comparison-grid" style={{ marginTop: 16 }}>
+            <ModeCard mode="aereo" data={aereo} label="Aéreo · Courier" icon="✈️" />
+            <ModeCard mode="maritimo" data={maritimo} label="Marítimo · LCL" icon="🚢" />
+          </div>
 
-              {/* GASTOS OPERATIVOS */}
-              <Row sectionHead label="Gastos operativos" />
-              <Row label="Gestión aduanera courier (DHL/FedEx incluido en DAP)"
-                aereo={fmtUSD(aereo.handlingAereo)} maritimo="—" />
-              <Row label="Honorarios despachante (1.5% CIF, mín USD 400)"
-                aereo="—" maritimo={fmtUSD(maritimo.despachante)} />
-              <Row label="Gastos operativos + digitalización + SIM"
-                aereo="—" maritimo={fmtUSD(maritimo.gastosOperativos + maritimo.digitalizacion + maritimo.sim)} />
-              <Row label={`Handling agencia marítima`}
-                aereo="—" maritimo={fmtUSD(maritimo.handlingMaritimo)} />
-              <Row label="Desconsolidación (USD 25×W/M, mín 50, máx 350)"
-                aereo="—" maritimo={fmtUSD(maritimo.desconsolidacion)} />
-              <Row label="Depósito fiscal (estimado)"
-                aereo="—" maritimo={fmtUSD(maritimo.depositoFiscal)} />
-              <Row label="Recargo IMO depósito"
-                aereo="—" maritimo={fmtUSD(maritimo.recargIMODeposito)} />
+          <button
+            className={`breakdown-toggle ${showBreakdown ? 'open' : ''}`}
+            style={{ marginTop: 16 }}
+            onClick={() => setShowBreakdown(v => !v)}
+          >
+            {showBreakdown ? 'Ocultar desglose completo' : 'Ver desglose completo de impuestos y gastos'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
 
-              {/* TOTALES */}
-              <Row label="TOTAL LANDED (USD)" aereo={fmtUSD(aereo.totalUSD)} maritimo={fmtUSD(maritimo.totalUSD)} total />
-              <Row label="TOTAL LANDED (ARS)" aereo={fmtARS(aereo.totalARS)} maritimo={fmtARS(maritimo.totalARS)} total />
-              <Row label="FOB / unidad" aereo={fmtUSD(aereo.fobUnitUSD)} maritimo={fmtUSD(maritimo.fobUnitUSD)} total />
-              <Row label="Costo landed / unidad USD" aereo={fmtUSD(aereo.costoUnitUSD)} maritimo={fmtUSD(maritimo.costoUnitUSD)} total />
-              <Row label="Costo landed / unidad ARS" aereo={fmtARS(aereo.costoUnitARS)} maritimo={fmtARS(maritimo.costoUnitARS)} total />
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {(aereo.cbm > 0 || aereo.pesoVol > 0) && (
-        <p className="text-mute" style={{ fontSize: 12 }}>
-          Volumen: {fmt(aereo.cbm, 4)} m³ ·
-          Peso vol. courier (/5000): {fmt(aereo.pesoVol, 2)} kg ·
-          Peso facturable courier: {fmt(aereo.pesoFacturable, 2)} kg ·
-          W/M marítimo: {fmt(maritimo.wm, 4)}
-        </p>
+          {showBreakdown && <BreakdownTable aereo={aereo} maritimo={maritimo} producto={producto} />}
+        </>
       )}
 
-      <PricingPanel aereo={aereo} maritimo={maritimo} />
-    </>
+      {tab === 'pricing' && (
+        <PricingPanel aereo={aereo} maritimo={maritimo} />
+      )}
+    </div>
   )
 }

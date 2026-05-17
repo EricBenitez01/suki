@@ -102,7 +102,7 @@ export default function InputPanel({ values, onChange }) {
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Unidades</label>
+            <label className="form-label">Unidades <span style={{color:'var(--neg)'}}>*</span></label>
             <input className="form-input mono" type="number" min="1" step="1"
               placeholder="0" value={values.unidades} onChange={set('unidades')} />
           </div>
@@ -113,7 +113,7 @@ export default function InputPanel({ values, onChange }) {
           </div>
         </div>
         <div className="form-group">
-          <label className="form-label">FOB total <span>USD</span></label>
+          <label className="form-label">FOB total <span>USD</span> <span style={{color:'var(--neg)'}}>*</span></label>
           <input className="form-input mono" type="number" min="0" step="0.01"
             placeholder="0.00" value={values.fob} onChange={set('fob')} />
           <p className="form-hint">Podés ingresar FOB unitario arriba o FOB total acá — se sincronizan automáticamente</p>
@@ -123,7 +123,7 @@ export default function InputPanel({ values, onChange }) {
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Peso bruto <span>kg</span></label>
+            <label className="form-label">Peso bruto <span>kg</span> <span style={{color:'var(--neg)'}}>*</span></label>
             <input className="form-input mono" type="number" min="0" step="0.1"
               placeholder="0.0" value={values.pesoKg} onChange={set('pesoKg')} />
           </div>
@@ -188,11 +188,15 @@ export default function InputPanel({ values, onChange }) {
               placeholder="Ej: 8471.30.12" value={values.ncm} onChange={setStr('ncm')} />
           </div>
           <div className="form-group">
-            <label className="form-label">DI <span>%</span></label>
+            <label className="form-label">DI <span>%</span> <span style={{color:'var(--neg)'}}>*</span></label>
             <input className="form-input mono" type="number" min="0" max="100" step="0.5"
               placeholder="0" value={values.di} onChange={set('di')} />
           </div>
         </div>
+
+        <p className="form-hint" style={{ marginTop: -4, marginBottom: 10 }}>
+          <span style={{ color: 'var(--neg)' }}>*</span> Campos requeridos para calcular
+        </p>
 
         <div className="form-group">
           <label className="form-label">Tipo de cambio <span>ARS / USD</span></label>

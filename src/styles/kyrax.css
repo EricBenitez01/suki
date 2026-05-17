@@ -563,6 +563,58 @@ body {
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .results-stack { display: flex; flex-direction: column; gap: 18px; }
 
+/* ─── Tabs ───────────────────────────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  border-bottom: 2px solid var(--line);
+  gap: 2px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-mute);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.tab-btn:hover { color: var(--ink-soft); }
+
+.tab-btn.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+
+/* ─── Breakdown toggle ───────────────────────────────────────────────────────── */
+.breakdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-mute);
+  font-family: var(--font-sans);
+  transition: background 0.15s, color 0.15s;
+}
+
+.breakdown-toggle:hover { background: var(--bg-alt); color: var(--ink-soft); }
+.breakdown-toggle svg { transition: transform 0.2s; margin-left: auto; }
+.breakdown-toggle.open svg { transform: rotate(180deg); }
+
 /* ─── Saved products bar ─────────────────────────────────────────────────────── */
 .saved-bar {
   display: flex;

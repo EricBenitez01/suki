@@ -69,9 +69,9 @@ export default function App() {
       <main className="app-main">
         <div className="page-header">
           <div>
-            <h1 className="page-title">Comparativa de flete</h1>
+            <h1 className="page-title">Calculadora de importación</h1>
             <p className="page-subtitle">
-              Calculá el costo landed total por aéreo y marítimo, incluyendo todos los impuestos de importación.
+              Flete aéreo vs marítimo · Impuestos aduaneros · Pricing Mercado Libre
             </p>
           </div>
         </div>
