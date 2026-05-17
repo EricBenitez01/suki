@@ -3,6 +3,78 @@ import { fmt, fmtARS } from '../lib/calculations.js'
 
 const ESCENARIOS = [10, 15, 20, 25, 30, 35]
 
+function BreakevenSection({ costoUnitARS, totalARS, mlPct, adsPct, ivaPct, iibbPct, otrosPct, modoTarget }) {
+  const factorNeto = 1 - mlPct / 100 - adsPct / 100 - ivaPct / 100 - iibbPct / 100 - otrosPct / 100
+  if (factorNeto <= 0 || !totalARS) return null
+
+  const unidadesTotales = Math.round(totalARS / costoUnitARS)
+
+  const rows = ESCENARIOS.map(pct => {
+    let precio
+    if (modoTarget === 'precio') {
+      const denom = factorNeto - pct / 100
+      if (denom <= 0) return null
+      precio = costoUnitARS / denom
+    } else {
+      precio = (costoUnitARS * (1 + pct / 100)) / factorNeto
+    }
+    const revenueUnit = precio * factorNeto
+    const beUnits = Math.ceil(totalARS / revenueUnit)
+    const bePct = (beUnits / unidadesTotales) * 100
+    return { pct, precio, beUnits, bePct }
+  }).filter(Boolean)
+
+  return (
+    <div style={{ marginTop: 24 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-mute)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+        Punto de equilibrio — recuperar inversión
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ink-mute)', marginBottom: 10 }}>
+        Inversión total del lote: <strong style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>{fmtARS(totalARS)}</strong>
+        {' '}· {unidadesTotales} unidades.
+        {' '}Unidades a vender para recuperar toda la inversión según escenario de precio:
+      </div>
+      <table className="breakdown-table">
+        <thead>
+          <tr>
+            <th>Margen %</th>
+            <th>Precio redondeado</th>
+            <th>Unidades a vender</th>
+            <th>% del lote</th>
+            <th>Restan con ganancia</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ pct, precio, beUnits, bePct }) => {
+            const restantes = unidadesTotales - beUnits
+            const cls = bePct <= 60 ? 'breakeven-row-ok' : bePct <= 85 ? 'breakeven-row-warn' : 'breakeven-row-bad'
+            return (
+              <tr key={pct} className={cls}>
+                <td>{pct}%</td>
+                <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', fontWeight: 600 }}>
+                  {fmtARS(Math.ceil(precio / 1000) * 1000)}
+                </td>
+                <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right' }}>
+                  {beUnits > unidadesTotales ? `> ${unidadesTotales} ✗` : beUnits}
+                </td>
+                <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right' }}>
+                  {bePct > 100 ? '> 100%' : fmt(bePct, 1) + '%'}
+                </td>
+                <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right' }}>
+                  {restantes < 0 ? '—' : `${restantes} uds`}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <p style={{ fontSize: 11, color: 'var(--ink-mute)', marginTop: 6 }}>
+        🟢 &lt;60% · 🟡 60–85% · 🔴 &gt;85% del lote necesario para recuperar la inversión.
+      </p>
+    </div>
+  )
+}
+
 function calcPricing({ costoARS, mlPct, adsPct, ivaPct, iibbPct, otrosPct, targetMargen, modoTarget }) {
   const factorNeto = 1 - mlPct / 100 - adsPct / 100 - ivaPct / 100 - iibbPct / 100 - otrosPct / 100
   if (factorNeto <= 0) return null
@@ -288,6 +360,15 @@ export default function PricingPanel({ aereo, maritimo }) {
                 })}
               </tbody>
             </table>
+
+            {/* ── Punto de equilibrio ── */}
+            <BreakevenSection
+              costoUnitARS={costoARS}
+              totalARS={base.totalARS}
+              mlPct={mlPct} adsPct={adsPct} ivaPct={ivaPct}
+              iibbPct={iibbPct} otrosPct={otrosPct}
+              modoTarget={modoTarget}
+            />
           </>
         )}
       </div>

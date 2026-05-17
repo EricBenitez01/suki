@@ -1,8 +1,17 @@
 import { useState } from 'react'
 import { DEFAULTS } from '../lib/calculations.js'
 
+const STORAGE_KEY = 'suki_productos'
+
+function loadSaved() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] } catch { return [] }
+}
+
 export default function InputPanel({ values, onChange }) {
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [saved, setSaved] = useState(loadSaved)
+  const [tcRates, setTcRates] = useState(null)
+  const [tcLoading, setTcLoading] = useState(false)
 
   const set = (key) => (e) => {
     const raw = e.target.value
@@ -12,8 +21,75 @@ export default function InputPanel({ values, onChange }) {
 
   const setStr = (key) => (e) => onChange({ ...values, [key]: e.target.value })
 
+  // ── Saved products ──────────────────────────────────────────────────────────
+  const saveProduct = () => {
+    const nombre = (values.producto || '').trim() || `Producto ${saved.length + 1}`
+    const existing = saved.find(p => p.nombre === nombre)
+    const entry = { id: existing?.id || Date.now(), nombre, ts: Date.now(), values }
+    const updated = existing
+      ? saved.map(p => p.id === entry.id ? entry : p)
+      : [...saved, entry]
+    setSaved(updated)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  }
+
+  const loadProduct = (e) => {
+    const id = Number(e.target.value)
+    const p = saved.find(p => p.id === id)
+    if (p) onChange(p.values)
+  }
+
+  const deleteProduct = () => {
+    const nombre = (values.producto || '').trim()
+    const updated = saved.filter(p => p.nombre !== nombre)
+    setSaved(updated)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  }
+
+  const isSaved = saved.some(p => p.nombre === (values.producto || '').trim())
+
+  // ── TC live ─────────────────────────────────────────────────────────────────
+  const fetchTC = async () => {
+    setTcLoading(true)
+    setTcRates(null)
+    try {
+      const res = await fetch('https://dolarapi.com/v1/dolares')
+      const data = await res.json()
+      setTcRates(data.filter(r => ['blue', 'mep', 'oficial'].includes(r.casa)))
+    } catch {
+      setTcRates('error')
+    } finally {
+      setTcLoading(false)
+    }
+  }
+
+  const applyRate = (venta) => {
+    onChange({ ...values, tc: venta })
+    setTcRates(null)
+  }
+
+  const rateLabel = { blue: '🔵 Blue', mep: '📊 MEP', oficial: '🏛 Oficial' }
+
   return (
     <div className="card">
+      {/* ── Saved products bar ── */}
+      <div className="saved-bar">
+        <select defaultValue="" onChange={loadProduct}>
+          <option value="" disabled>Cargar producto guardado…</option>
+          {saved.map(p => (
+            <option key={p.id} value={p.id}>{p.nombre}</option>
+          ))}
+        </select>
+        <button className="btn-sm primary" type="button" onClick={saveProduct} title="Guardar producto actual">
+          💾 Guardar
+        </button>
+        {isSaved && (
+          <button className="btn-sm danger" type="button" onClick={deleteProduct} title="Eliminar producto guardado">
+            🗑
+          </button>
+        )}
+      </div>
+
       <div className="card-header">Datos del producto</div>
       <div className="card-body">
 
@@ -33,7 +109,7 @@ export default function InputPanel({ values, onChange }) {
           <div className="form-group">
             <label className="form-label">FOB por unidad <span>USD</span></label>
             <input className="form-input mono" type="number" min="0" step="0.01"
-              placeholder="0.00" value={values.fobUnit === '' ? '' : Number(values.fobUnit).toFixed ? values.fobUnit : ''} onChange={set('fobUnit')} />
+              placeholder="0.00" value={values.fobUnit === '' ? '' : values.fobUnit} onChange={set('fobUnit')} />
           </div>
         </div>
         <div className="form-group">
@@ -120,8 +196,25 @@ export default function InputPanel({ values, onChange }) {
 
         <div className="form-group">
           <label className="form-label">Tipo de cambio <span>ARS / USD</span></label>
-          <input className="form-input mono" type="number" min="0" step="0.01"
-            placeholder={DEFAULTS.tc} value={values.tc} onChange={set('tc')} />
+          <div className="tc-live-wrap">
+            <input className="form-input mono" type="number" min="0" step="0.01"
+              placeholder={DEFAULTS.tc} value={values.tc} onChange={set('tc')} />
+            <button className="btn-live" type="button" onClick={fetchTC} disabled={tcLoading}>
+              {tcLoading ? '…' : '↻ Live'}
+            </button>
+          </div>
+          {tcRates === 'error' && (
+            <p className="form-hint" style={{ color: 'var(--neg)' }}>No se pudo obtener el TC. Revisá la conexión.</p>
+          )}
+          {Array.isArray(tcRates) && (
+            <div className="tc-rates">
+              {tcRates.map(r => (
+                <button key={r.casa} className="tc-rate-btn" type="button" onClick={() => applyRate(r.venta)}>
+                  {rateLabel[r.casa] || r.nombre} · ${r.venta.toLocaleString('es-AR')}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Advanced */}
@@ -168,11 +261,6 @@ export default function InputPanel({ values, onChange }) {
                 <label className="form-label">T. Estadística <span>%</span></label>
                 <input className="form-input mono" type="number" min="0" step="0.5"
                   value={values.tasaEstadisticaPct} onChange={set('tasaEstadisticaPct')} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">TC ARS/USD</label>
-                <input className="form-input mono" type="number" min="0" step="1"
-                  value={values.tc} onChange={set('tc')} />
               </div>
             </div>
 
@@ -241,7 +329,7 @@ export default function InputPanel({ values, onChange }) {
               Desconsolidación: USD 25 × W/M (mín USD 50, máx USD 350) — calculado automáticamente
             </p>
 
-            <div className="form-section">Despacho (ambos)</div>
+            <div className="form-section">Despacho (marítimo)</div>
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Despachante <span>%CIF</span></label>
