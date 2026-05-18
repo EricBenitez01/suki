@@ -175,6 +175,28 @@ export function calcularComparativa(inputs) {
   }
 }
 
+export function calcPricing({ costoARS, mlPct, adsPct, ivaPct, iibbPct, otrosPct, targetMargen, modoTarget }) {
+  const factorNeto = 1 - mlPct / 100 - adsPct / 100 - ivaPct / 100 - iibbPct / 100 - otrosPct / 100
+  if (factorNeto <= 0) return null
+
+  let precio
+  if (modoTarget === 'precio') {
+    const denom = factorNeto - targetMargen / 100
+    if (denom <= 0) return null
+    precio = costoARS / denom
+  } else {
+    precio = (costoARS * (1 + targetMargen / 100)) / factorNeto
+  }
+
+  const netoML = precio * (1 - mlPct / 100)
+  const netoUnitario = precio * factorNeto
+  const margenUnitario = netoUnitario - costoARS
+  const margenSobrePrecio = margenUnitario / precio
+  const margenSobreCosto = margenUnitario / costoARS
+
+  return { precio, netoML, netoUnitario, margenUnitario, margenSobrePrecio, margenSobreCosto, factorNeto }
+}
+
 export function fmt(n, decimals = 0) {
   if (n === undefined || n === null || isNaN(n)) return '—'
   return n.toLocaleString('es-AR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })

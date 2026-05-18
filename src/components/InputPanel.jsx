@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { DEFAULTS } from '../lib/calculations.js'
 
-const STORAGE_KEY = 'suki_productos'
+const STORAGE_KEY = 'suki_cotizador_guardados'
 
 function loadSaved() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] } catch { return [] }

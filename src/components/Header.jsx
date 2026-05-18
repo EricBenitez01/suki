@@ -1,4 +1,4 @@
-export default function Header({ view, onChangeView }) {
+export default function Header({ isDark, onToggleDark, profile, onSignOut }) {
   return (
     <header className="app-header">
       <div className="header-brand">
@@ -8,21 +8,19 @@ export default function Header({ view, onChangeView }) {
         <span className="header-app">Suki</span>
       </div>
       <div className="header-right">
-        <nav className="header-nav">
-          <button
-            className={view === 'cotizacion' ? 'active' : ''}
-            onClick={() => onChangeView('cotizacion')}
-          >
-            Nueva cotización
-          </button>
-          <button
-            className={view === 'historial' ? 'active' : ''}
-            onClick={() => onChangeView('historial')}
-          >
-            📋 Historial
-          </button>
-        </nav>
-        <span className="header-version">v0.2.0</span>
+        <button className="dark-toggle" onClick={onToggleDark} title={isDark ? 'Modo claro' : 'Modo oscuro'}>
+          {isDark ? '☀️' : '🌙'}
+        </button>
+        {profile && (
+          <div className="header-user">
+            <span className="header-user-name">{profile.nombre}</span>
+            <span className="header-user-role">{profile.role}</span>
+            <button className="btn-sm" style={{ padding: '3px 10px', fontSize: 11 }} onClick={onSignOut} title="Cerrar sesión">
+              Salir
+            </button>
+          </div>
+        )}
+        <span className="header-version">v0.4.0</span>
       </div>
     </header>
   )

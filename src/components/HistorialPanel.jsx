@@ -1,38 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { fmtUSD, fmtARS, fmt } from '../lib/calculations.js'
+import * as db from '../lib/db.js'
 
-const STORAGE_KEY = 'suki_simulaciones'
-
-export function loadSimulaciones() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] } catch { return [] }
-}
-
-export function saveSimulacion(inputs, results) {
-  const ganador = results.aereo.totalUSD <= results.maritimo.totalUSD ? 'aereo' : 'maritimo'
-  const sim = {
-    id: Date.now(),
-    nombre: (inputs.producto || 'Sin nombre').trim(),
-    fecha: new Date().toISOString(),
-    inputs: { ...inputs },
-    ganador,
-    aereo: {
-      totalUSD: results.aereo.totalUSD,
-      totalARS: results.aereo.totalARS,
-      costoUnitUSD: results.aereo.costoUnitUSD,
-      costoUnitARS: results.aereo.costoUnitARS,
-    },
-    maritimo: {
-      totalUSD: results.maritimo.totalUSD,
-      totalARS: results.maritimo.totalARS,
-      costoUnitUSD: results.maritimo.costoUnitUSD,
-      costoUnitARS: results.maritimo.costoUnitARS,
-    },
-  }
-  const prev = loadSimulaciones()
-  const updated = [sim, ...prev]
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-  return updated
-}
+// Re-exports for backward compatibility con App.jsx
+export const loadSimulaciones = db.loadSimulaciones
+export const saveSimulacion = db.saveSimulacion
 
 function formatFecha(iso) {
   return new Date(iso).toLocaleDateString('es-AR', {
@@ -55,19 +27,24 @@ function SimCard({ sim, onRestore, onDelete }) {
         <div className="sim-card-title" title={sim.nombre}>{sim.nombre}</div>
         <div className="sim-card-meta">
           {formatFecha(sim.fecha)}
-          {sim.inputs.unidades ? ` · ${fmt(sim.inputs.unidades, 0)} uds` : ''}
-          {sim.inputs.fob ? ` · FOB ${fmtUSD(sim.inputs.fob)}` : ''}
-          {sim.inputs.di !== '' ? ` · DI ${sim.inputs.di}%` : ''}
+          {sim.inputs?.unidades ? ` · ${fmt(sim.inputs.unidades, 0)} uds` : ''}
+          {sim.inputs?.fob ? ` · FOB ${fmtUSD(sim.inputs.fob)}` : ''}
+          {sim.inputs?.di !== '' ? ` · DI ${sim.inputs.di}%` : ''}
         </div>
+        {sim.notas && (
+          <div className="sim-card-meta" style={{ marginTop: 4, fontFamily: 'var(--font-sans)', fontSize: 11, opacity: 0.8 }}>
+            {sim.notas}
+          </div>
+        )}
       </div>
 
       <div className="sim-card-body">
-        <div className={`sim-mode-row aereo${sim.ganador === 'aereo' ? '' : ''}`}>
+        <div className="sim-mode-row aereo">
           <span className="label">✈ Aéreo</span>
           <span className="val-usd">{fmtUSD(sim.aereo.totalUSD)}</span>
           <span className="val-unit">{fmtUSD(sim.aereo.costoUnitUSD)}/ud</span>
         </div>
-        <div className={`sim-mode-row maritimo`}>
+        <div className="sim-mode-row maritimo">
           <span className="label">🚢 Marítimo</span>
           <span className="val-usd">{fmtUSD(sim.maritimo.totalUSD)}</span>
           <span className="val-unit">{fmtUSD(sim.maritimo.costoUnitUSD)}/ud</span>
@@ -90,24 +67,32 @@ function SimCard({ sim, onRestore, onDelete }) {
 }
 
 export default function HistorialPanel({ onRestore }) {
-  const [sims, setSims] = useState(loadSimulaciones)
+  const [sims, setSims] = useState([])
+  const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
 
-  const deleteSim = (id) => {
-    const updated = sims.filter(s => s.id !== id)
-    setSims(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  useEffect(() => {
+    db.loadSimulaciones().then(data => { setSims(data); setLoading(false) })
+  }, [])
+
+  const deleteSim = async (id) => {
+    await db.deleteSimulacion(id)
+    setSims(prev => prev.filter(s => s.id !== id))
   }
 
-  const clearAll = () => {
+  const clearAll = async () => {
     if (!confirm('¿Eliminar todas las simulaciones guardadas?')) return
+    await db.clearSimulaciones()
     setSims([])
-    localStorage.removeItem(STORAGE_KEY)
   }
 
   const filtered = sims.filter(s =>
     s.nombre.toLowerCase().includes(filtro.toLowerCase())
   )
+
+  if (loading) {
+    return <div className="empty-state" style={{ marginTop: 60 }}><div className="empty-state-text">Cargando simulaciones…</div></div>
+  }
 
   if (sims.length === 0) {
     return (
@@ -118,7 +103,6 @@ export default function HistorialPanel({ onRestore }) {
             <div className="empty-state-title">Sin simulaciones guardadas</div>
             <div className="empty-state-text">
               Hacé una cotización y presioná <strong>Guardar simulación</strong> para que aparezca acá.
-              Podés volver a verla en cualquier momento.
             </div>
           </div>
         </div>

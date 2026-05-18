@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { fmtUSD, fmtARS, fmt } from '../lib/calculations.js'
-import PricingPanel from './PricingPanel.jsx'
 
 function CostBar({ mode, fob, flete, impuestos, gastos, total }) {
   const pctFob = (fob / total * 100).toFixed(1)
@@ -135,7 +134,7 @@ function BreakdownTable({ aereo, maritimo, producto }) {
             <Row sectionHead label="Impuestos aduaneros (sobre CIF)" />
             <Row label={`DI (${fmt(aereo.diAmt / aereo.cif * 100, 1)}%)`}
               aereo={fmtUSD(aereo.diAmt)} maritimo={fmtUSD(maritimo.diAmt)} />
-            <Row label={`Tasa estadística`}
+            <Row label="Tasa estadística"
               aereo={fmtUSD(aereo.teAmt)} maritimo={fmtUSD(maritimo.teAmt)} />
             <Row label="Base imponible" aereo={fmtUSD(aereo.baseImponible)} maritimo={fmtUSD(maritimo.baseImponible)} bold />
             <Row label={`IVA (${fmt(aereo.ivaAmt / aereo.baseImponible * 100, 1)}%)`}
@@ -185,37 +184,30 @@ function BreakdownTable({ aereo, maritimo, producto }) {
 }
 
 export default function ResultsPanel({ results, producto, onSave, savedFlash }) {
-  const [tab, setTab] = useState('flete')
   const [showBreakdown, setShowBreakdown] = useState(false)
 
   if (!results) {
     return (
-      <div>
-        <div className="tab-bar">
-          <button className="tab-btn active">✈ 🚢 Flete & Costos</button>
-          <button className="tab-btn" style={{ opacity: 0.4, cursor: 'default' }}>💰 Pricing ML</button>
-        </div>
-        <div className="card">
-          <div className="card-body">
-            <div className="empty-state">
-              <div className="empty-state-icon">⚖️</div>
-              <div className="empty-state-title">Completá los datos del producto</div>
-              <div className="empty-state-text">
-                Ingresá los campos marcados con <strong>*</strong> para ver la comparativa.
-              </div>
-              <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left', maxWidth: 280, margin: '20px auto 0' }}>
-                {[
-                  { icon: '✈ 🚢', text: 'Costo landed aéreo vs marítimo' },
-                  { icon: '📊', text: 'Desglose completo de impuestos' },
-                  { icon: '💰', text: 'Precio de venta óptimo para ML' },
-                  { icon: '📈', text: 'Punto de equilibrio del lote' },
-                ].map(({ icon, text }) => (
-                  <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--ink-soft)' }}>
-                    <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{icon}</span>
-                    <span>{text}</span>
-                  </div>
-                ))}
-              </div>
+      <div className="card">
+        <div className="card-body">
+          <div className="empty-state">
+            <div className="empty-state-icon">⚖️</div>
+            <div className="empty-state-title">Completá los datos del producto</div>
+            <div className="empty-state-text">
+              Ingresá los campos marcados con <strong>*</strong> para ver la comparativa de flete.
+            </div>
+            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left', maxWidth: 280, margin: '20px auto 0' }}>
+              {[
+                { icon: '✈', text: 'Costo landed aéreo (DHL/FedEx DAP)' },
+                { icon: '🚢', text: 'Costo landed marítimo LCL' },
+                { icon: '📊', text: 'Desglose completo de impuestos' },
+                { icon: '💰', text: 'El resultado alimenta el módulo Pricing' },
+              ].map(({ icon, text }) => (
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--ink-soft)' }}>
+                  <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{icon}</span>
+                  <span>{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -227,55 +219,31 @@ export default function ResultsPanel({ results, producto, onSave, savedFlash }) 
 
   return (
     <div>
-      <div className="tab-bar">
-        <button
-          className={`tab-btn ${tab === 'flete' ? 'active' : ''}`}
-          onClick={() => setTab('flete')}
-        >
-          ✈ 🚢 Flete & Costos
-        </button>
-        <button
-          className={`tab-btn ${tab === 'pricing' ? 'active' : ''}`}
-          onClick={() => setTab('pricing')}
-        >
-          💰 Pricing ML
-        </button>
-        <button
-          className="btn-sm primary"
-          style={{ marginLeft: 'auto', alignSelf: 'center' }}
-          onClick={onSave}
-        >
-          {savedFlash ? '✓ Guardado' : '💾 Guardar'}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button className="btn-sm primary" onClick={onSave}>
+          {savedFlash ? '✓ Guardado' : '💾 Guardar simulación'}
         </button>
       </div>
 
-      {tab === 'flete' && (
-        <>
-          <SavingsBanner aereo={aereo} maritimo={maritimo} />
+      <SavingsBanner aereo={aereo} maritimo={maritimo} />
 
-          <div className="comparison-grid" style={{ marginTop: 16 }}>
-            <ModeCard mode="aereo" data={aereo} label="Aéreo · Courier" icon="✈️" />
-            <ModeCard mode="maritimo" data={maritimo} label="Marítimo · LCL" icon="🚢" />
-          </div>
+      <div className="comparison-grid" style={{ marginTop: 16 }}>
+        <ModeCard mode="aereo" data={aereo} label="Aéreo · Courier" icon="✈️" />
+        <ModeCard mode="maritimo" data={maritimo} label="Marítimo · LCL" icon="🚢" />
+      </div>
 
-          <button
-            className={`breakdown-toggle ${showBreakdown ? 'open' : ''}`}
-            style={{ marginTop: 16 }}
-            onClick={() => setShowBreakdown(v => !v)}
-          >
-            {showBreakdown ? 'Ocultar desglose completo' : 'Ver desglose completo de impuestos y gastos'}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </button>
+      <button
+        className={`breakdown-toggle ${showBreakdown ? 'open' : ''}`}
+        style={{ marginTop: 16 }}
+        onClick={() => setShowBreakdown(v => !v)}
+      >
+        {showBreakdown ? 'Ocultar desglose completo' : 'Ver desglose completo de impuestos y gastos'}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
 
-          {showBreakdown && <BreakdownTable aereo={aereo} maritimo={maritimo} producto={producto} />}
-        </>
-      )}
-
-      {tab === 'pricing' && (
-        <PricingPanel aereo={aereo} maritimo={maritimo} />
-      )}
+      {showBreakdown && <BreakdownTable aereo={aereo} maritimo={maritimo} producto={producto} />}
     </div>
   )
 }
