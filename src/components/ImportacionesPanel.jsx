@@ -2,6 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { calcularComparativa, DEFAULTS, fmtUSD, fmtARS, fmt } from '../lib/calculations.js'
 import { addProducto } from '../lib/productos.js'
 import * as db from '../lib/db.js'
+import ConfirmModal from './ConfirmModal.jsx'
+import { useToast } from '../contexts/ToastContext.jsx'
 
 const STATUSES = [
   { id: 'cotizando',   label: 'Cotizando',      color: '#64748b' },
@@ -122,11 +124,12 @@ function ProductForm({ initial, onSave, onCancel }) {
 }
 
 function ProductRow({ prod, calc, importacionId, onEdit, onDelete }) {
+  const showToast = useToast()
   const [catalogFlash, setCatalogFlash] = useState(false)
 
-  const handleAddCatalog = () => {
+  const handleAddCatalog = async () => {
     if (!calc) return
-    addProducto({
+    await addProducto({
       nombre: prod.nombre,
       sku: '',
       mlPct: 25, adsPct: 12, ivaPct: 14, iibbPct: 0, otrosPct: 0,
@@ -140,6 +143,7 @@ function ProductRow({ prod, calc, importacionId, onEdit, onDelete }) {
     })
     setCatalogFlash(true)
     setTimeout(() => setCatalogFlash(false), 2500)
+    showToast(`"${prod.nombre}" agregado al catálogo ✓`, 'success')
   }
 
   return (
@@ -268,7 +272,15 @@ function ImportForm({ initial, onSave, onCancel }) {
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Tipo de cambio ARS/USD</label>
-              <input className="form-input mono" type="number" value={form.tc} onChange={setF('tc')} />
+              <input
+                className="form-input mono"
+                type="number"
+                min="1"
+                placeholder={String(DEFAULTS.tc)}
+                value={form.tc}
+                onChange={setF('tc')}
+                onBlur={e => { if (!e.target.value) setForm(f => ({ ...f, tc: String(DEFAULTS.tc) })) }}
+              />
             </div>
           </div>
           <div className="form-group" style={{ marginBottom: 0, marginTop: 12 }}>
@@ -399,11 +411,13 @@ function ImportCard({ imp, calcs, onEdit, onDelete }) {
 }
 
 export default function ImportacionesPanel() {
+  const showToast = useToast()
   const [importaciones, setImportaciones] = useState([])
   const [loading, setLoading] = useState(true)
   const [formView, setFormView] = useState(false)
   const [editingImp, setEditingImp] = useState(null)
   const [filtro, setFiltro] = useState('')
+  const [confirmDelId, setConfirmDelId] = useState(null)
 
   useEffect(() => {
     db.loadImportaciones().then(data => { setImportaciones(data); setLoading(false) })
@@ -418,12 +432,13 @@ export default function ImportacionesPanel() {
     )
     setFormView(false)
     setEditingImp(null)
+    showToast(editingImp ? 'Importación actualizada ✓' : 'Importación guardada ✓', 'success')
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar esta importación?')) return
     await db.deleteImportacion(id)
     setImportaciones(prev => prev.filter(x => x.id !== id))
+    showToast('Importación eliminada', 'success')
   }
 
   const handleEdit = (imp) => {
@@ -450,10 +465,20 @@ export default function ImportacionesPanel() {
 
   return (
     <div>
+      {confirmDelId != null && (
+        <ConfirmModal
+          title="Eliminar importación"
+          message="¿Eliminar esta importación? Se perderán todos los productos y datos asociados."
+          confirmLabel="Eliminar"
+          danger
+          onConfirm={() => { handleDelete(confirmDelId); setConfirmDelId(null) }}
+          onCancel={() => setConfirmDelId(null)}
+        />
+      )}
       <div className="page-header">
         <div>
           <h1 className="page-title">Importaciones</h1>
-          <p className="page-subtitle">{importaciones.length} importación{importaciones.length !== 1 ? 'es' : ''} guardada{importaciones.length !== 1 ? 's' : ''}</p>
+          <p className="page-subtitle">{importaciones.length} {importaciones.length !== 1 ? 'importaciones' : 'importación'} guardada{importaciones.length !== 1 ? 's' : ''}</p>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {importaciones.length > 0 && (
@@ -501,7 +526,7 @@ export default function ImportacionesPanel() {
                 imp={imp}
                 calcs={calcs}
                 onEdit={() => handleEdit(imp)}
-                onDelete={() => handleDelete(imp.id)}
+                onDelete={() => setConfirmDelId(imp.id)}
               />
             )
           })}

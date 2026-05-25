@@ -1,11 +1,94 @@
 import { useState, useEffect } from 'react'
 import { getStats, exportarTodo, importarTodo } from '../lib/db.js'
+import { getMeliConnection, clearMeliConnection, getCachedItems } from '../lib/meli.js'
+import { fmtARS } from '../lib/calculations.js'
+
+const GF_KEY = 'suki_gastos_fijos'
+function loadGastosFijos() { try { return JSON.parse(localStorage.getItem(GF_KEY)) || [] } catch { return [] } }
+function saveGastosFijos(list) { localStorage.setItem(GF_KEY, JSON.stringify(list)) }
+
+function GastosFijosSection() {
+  const [gastos, setGastos] = useState(loadGastosFijos)
+  const [newNombre, setNewNombre] = useState('')
+  const [newMonto, setNewMonto] = useState('')
+
+  const save = (list) => { setGastos(list); saveGastosFijos(list) }
+
+  const add = () => {
+    const monto = parseFloat(newMonto.replace(/\./g, '').replace(',', '.'))
+    if (!newNombre.trim() || !monto) return
+    save([...gastos, { id: Date.now(), nombre: newNombre.trim(), monto, activo: true }])
+    setNewNombre(''); setNewMonto('')
+  }
+
+  const toggle = (id) => save(gastos.map(g => g.id === id ? { ...g, activo: !g.activo } : g))
+  const remove = (id) => save(gastos.filter(g => g.id !== id))
+
+  const total = gastos.filter(g => g.activo).reduce((s, g) => s + g.monto, 0)
+
+  return (
+    <div className="card" style={{ marginBottom: 16 }}>
+      <div className="card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span>Gastos fijos mensuales</span>
+        {total > 0 && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--neg)' }}>
+            Total: {fmtARS(total)}/mes
+          </span>
+        )}
+      </div>
+      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <p className="form-hint">Estos gastos se descuentan del P&L Mensual para calcular tu ganancia operativa real.</p>
+
+        {gastos.length === 0 && (
+          <p style={{ fontSize: 13, color: 'var(--ink-mute)' }}>Sin gastos fijos cargados.</p>
+        )}
+
+        {gastos.map(g => (
+          <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
+            <input
+              type="checkbox" checked={g.activo}
+              onChange={() => toggle(g.id)}
+              style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }}
+            />
+            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: g.activo ? 'var(--ink)' : 'var(--ink-mute)' }}>
+              {g.nombre}
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: g.activo ? 'var(--neg)' : 'var(--ink-mute)', fontWeight: 700 }}>
+              {fmtARS(g.monto)}
+            </span>
+            <button onClick={() => remove(g.id)} className="btn-sm danger" style={{ padding: '3px 8px', fontSize: 11 }}>✕</button>
+          </div>
+        ))}
+
+        {/* Agregar */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <input
+            className="form-input" placeholder="Ej: Alquiler, Empleados…"
+            value={newNombre} onChange={e => setNewNombre(e.target.value)}
+            style={{ flex: 2, fontSize: 13 }}
+            onKeyDown={e => e.key === 'Enter' && add()}
+          />
+          <input
+            className="form-input" placeholder="Monto $"
+            value={newMonto} onChange={e => setNewMonto(e.target.value)}
+            style={{ flex: 1, fontSize: 13 }}
+            onKeyDown={e => e.key === 'Enter' && add()}
+          />
+          <button className="btn-sm primary" onClick={add} disabled={!newNombre.trim() || !newMonto}>
+            + Agregar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function SettingsPanel({ profile }) {
   const [stats, setStats] = useState({ simulaciones: 0, productos: 0, importaciones: 0 })
   const [importing, setImporting] = useState(false)
   const [msg, setMsg] = useState(null)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [meliConn, setMeliConn] = useState(getMeliConnection)
 
   useEffect(() => {
     getStats().then(setStats)
@@ -48,6 +131,36 @@ export default function SettingsPanel({ profile }) {
         <div>
           <h1 className="page-title">Ajustes</h1>
           <p className="page-subtitle">Configuración y gestión de datos</p>
+        </div>
+      </div>
+
+      {/* MercadoLibre */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-header">MercadoLibre</div>
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {meliConn ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--pos)', display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ fontWeight: 600, fontSize: 13 }}>Conectado · Usuario #{meliConn.user_id}</span>
+              </div>
+              {(() => { const c = getCachedItems(); return c ? (
+                <p className="form-hint">Caché: {c.items?.length ?? 0} publicaciones · última sync {new Date(c.synced_at).toLocaleString('es-AR')}</p>
+              ) : null })()}
+              <p className="form-hint" style={{ color: 'var(--ink-mute)' }}>Acceso de solo lectura — Suki no modifica tus publicaciones.</p>
+              <button className="btn-sm danger" style={{ alignSelf: 'flex-start' }} onClick={() => { clearMeliConnection(); setMeliConn(null) }}>
+                Desconectar ML
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ink-mute)', display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: 'var(--ink-mute)' }}>No conectado</span>
+              </div>
+              <p className="form-hint">Conectá tu cuenta para ver tus publicaciones desde el módulo ML Publicaciones.</p>
+            </>
+          )}
         </div>
       </div>
 
@@ -94,6 +207,8 @@ export default function SettingsPanel({ profile }) {
           </div>
         </div>
       )}
+
+      <GastosFijosSection />
 
       <div className="card">
         <div className="card-header">Datos almacenados</div>

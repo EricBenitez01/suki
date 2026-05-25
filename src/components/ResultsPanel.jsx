@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fmtUSD, fmtARS, fmt } from '../lib/calculations.js'
+import { fmtUSD, fmtARS, fmt, calcSensitivity } from '../lib/calculations.js'
 
 function CostBar({ mode, fob, flete, impuestos, gastos, total }) {
   const pctFob = (fob / total * 100).toFixed(1)
@@ -78,13 +78,13 @@ function SavingsBanner({ aereo, maritimo }) {
   if (cheaper === 'maritimo') {
     return (
       <div className="savings-banner maritimo-wins">
-        🚢 <span>El marítimo es <strong>{fmtUSD(diff)}</strong> más barato ({diffPct}% menos). Tiempo adicional: ~15–20 días más.</span>
+        🚢 <span>El marítimo ahorra <strong>{fmtUSD(diff)}</strong> ({diffPct}% menos). El aéreo tarda ~15–20 días menos, pero cuesta <strong>{fmtUSD(diff)}</strong> más.</span>
       </div>
     )
   }
   return (
     <div className="savings-banner aereo-wins">
-      ✈️ <span>El aéreo es solo <strong>{fmtUSD(diff)}</strong> más caro ({diffPct}% más). Evaluá si el tiempo justifica la diferencia.</span>
+      ✈️ <span>El aéreo conviene: es <strong>{fmtUSD(diff)}</strong> más barato ({diffPct}% menos) y llega antes. Revisá los gastos fijos del marítimo.</span>
     </div>
   )
 }
@@ -183,7 +183,67 @@ function BreakdownTable({ aereo, maritimo, producto }) {
   )
 }
 
-export default function ResultsPanel({ results, producto, onSave, savedFlash }) {
+function SensitivityTable({ inputs, currentAereoUnit, currentMaritimoUnit }) {
+  const rows = calcSensitivity(inputs)
+  if (rows.length < 2) return null
+
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span>📈 Tabla de sensibilidad — Costo/unidad según volumen</span>
+      </div>
+      <div className="card-body" style={{ padding: '12px 0 4px' }}>
+        <p style={{ fontSize: 12, color: 'var(--ink-mute)', padding: '0 16px', marginBottom: 10 }}>
+          Escala FOB, peso y unidades proporcionalmente. Muestra cómo el costo unitario varía al importar más o menos cantidad.
+        </p>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="breakdown-table">
+            <thead>
+              <tr>
+                <th>Escala</th>
+                <th>Unidades</th>
+                <th>FOB total</th>
+                <th style={{ color: 'var(--aereo)' }}>✈ Aéreo / ud</th>
+                <th style={{ color: 'var(--maritimo)' }}>🚢 Marítimo / ud</th>
+                <th>Diferencia / ud</th>
+                <th>Ganador</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ multiplier, unidades, fobTotal, aereo, maritimo }) => {
+                const diff = maritimo.costoUnitUSD - aereo.costoUnitUSD
+                const isCurrent = multiplier === 1
+                const maritimoWins = diff < 0
+                return (
+                  <tr key={multiplier} style={{ background: isCurrent ? 'var(--brand-light)' : undefined, fontWeight: isCurrent ? 700 : 400 }}>
+                    <td style={{ fontWeight: 700, color: isCurrent ? 'var(--brand)' : 'var(--ink-mute)' }}>
+                      {isCurrent ? '★ ' : ''}{multiplier}x
+                    </td>
+                    <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right' }}>{fmt(unidades, 0)}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right' }}>{fmtUSD(fobTotal)}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', color: 'var(--aereo)' }}>{fmtUSD(aereo.costoUnitUSD)}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', color: 'var(--maritimo)' }}>{fmtUSD(maritimo.costoUnitUSD)}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', fontWeight: 600, color: maritimoWins ? 'var(--maritimo)' : 'var(--aereo)' }}>
+                      {maritimoWins ? `🚢 ${fmtUSD(Math.abs(diff))} menos` : `✈ ${fmtUSD(Math.abs(diff))} menos`}
+                    </td>
+                    <td style={{ fontWeight: 600, color: maritimoWins ? 'var(--maritimo)' : 'var(--aereo)' }}>
+                      {maritimoWins ? '🚢 Mar.' : '✈ Aéreo'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p style={{ fontSize: 11, color: 'var(--ink-mute)', padding: '8px 16px 0' }}>
+          ★ = escenario actual. El marítimo conviene más a mayor volumen por dilución de gastos fijos (~USD 2.000 fijos vs USD 60 aéreo).
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export default function ResultsPanel({ results, inputs, producto, onSave, savedFlash }) {
   const [showBreakdown, setShowBreakdown] = useState(false)
 
   if (!results) {
@@ -221,7 +281,7 @@ export default function ResultsPanel({ results, producto, onSave, savedFlash }) 
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <button className="btn-sm primary" onClick={onSave}>
-          {savedFlash ? '✓ Guardado' : '💾 Guardar simulación'}
+          {savedFlash ? '✓ Simulación guardada' : '💾 Guardar simulación…'}
         </button>
       </div>
 
@@ -244,6 +304,8 @@ export default function ResultsPanel({ results, producto, onSave, savedFlash }) 
       </button>
 
       {showBreakdown && <BreakdownTable aereo={aereo} maritimo={maritimo} producto={producto} />}
+
+      {inputs && <SensitivityTable inputs={inputs} currentAereoUnit={aereo.costoUnitUSD} currentMaritimoUnit={maritimo.costoUnitUSD} />}
     </div>
   )
 }

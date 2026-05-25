@@ -112,6 +112,7 @@ function rowToProducto(row) {
     simulacionId: row.simulacion_id,
     importacionId: row.importacion_id,
     importacionProductoId: row.importacion_producto_id,
+    mlItemId: row.ml_item_id || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -139,6 +140,7 @@ export async function addProducto(data) {
       simulacion_id: data.simulacionId ?? null,
       importacion_id: data.importacionId ?? null,
       importacion_producto_id: data.importacionProductoId ?? null,
+      ml_item_id: data.mlItemId ?? null,
     })
     .select()
     .single()
@@ -158,6 +160,7 @@ export async function updateProducto(id, changes) {
     simulacionId: 'simulacion_id',
     importacionId: 'importacion_id',
     importacionProductoId: 'importacion_producto_id',
+    mlItemId: 'ml_item_id',
   }
   for (const [k, col] of Object.entries(map)) {
     if (changes[k] !== undefined) payload[col] = changes[k]

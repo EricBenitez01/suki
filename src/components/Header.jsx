@@ -1,7 +1,8 @@
-export default function Header({ isDark, onToggleDark, profile, onSignOut }) {
+export default function Header({ isDark, onToggleDark, profile, onSignOut, onToggleNav }) {
   return (
     <header className="app-header">
       <div className="header-brand">
+        <button className="nav-hamburger" onClick={onToggleNav} aria-label="Menú">☰</button>
         <div className="header-logo">K</div>
         <span className="header-wordmark">Kyrax Technology</span>
         <div className="header-sep" />

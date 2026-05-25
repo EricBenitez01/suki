@@ -175,6 +175,32 @@ export function calcularComparativa(inputs) {
   }
 }
 
+/**
+ * Sensitivity table: recalculate at different volume multipliers.
+ * Scales fob, unidades, pesoKg, bultos proportionally.
+ * Returns array of { multiplier, unidades, fobTotal, aereo, maritimo }
+ */
+export function calcSensitivity(inputs, multipliers = [0.5, 1, 2, 5, 10, 20]) {
+  const base = parseFloat(inputs.fob) || 0
+  const baseUnidades = parseFloat(inputs.unidades) || 0
+  const basePeso = parseFloat(inputs.pesoKg) || 0
+  const baseBultos = parseFloat(inputs.bultos) || 0
+  if (!base || !baseUnidades || !basePeso) return []
+
+  return multipliers.map(m => {
+    const scaled = {
+      ...inputs,
+      fob: base * m,
+      unidades: baseUnidades * m,
+      pesoKg: basePeso * m,
+      bultos: baseBultos ? baseBultos * m : inputs.bultos,
+    }
+    const r = calcularComparativa(scaled)
+    if (!r) return null
+    return { multiplier: m, unidades: baseUnidades * m, fobTotal: base * m, aereo: r.aereo, maritimo: r.maritimo }
+  }).filter(Boolean)
+}
+
 export function calcPricing({ costoARS, mlPct, adsPct, ivaPct, iibbPct, otrosPct, targetMargen, modoTarget }) {
   const factorNeto = 1 - mlPct / 100 - adsPct / 100 - ivaPct / 100 - iibbPct / 100 - otrosPct / 100
   if (factorNeto <= 0) return null

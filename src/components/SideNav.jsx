@@ -2,11 +2,17 @@ const NAV_TOP = [
   { id: 'inicio', icon: '🏠', label: 'Inicio' },
 ]
 
+const NAV_ANALYSIS = [
+  { id: 'dashboard', icon: '📊', label: 'Salud del negocio' },
+  { id: 'plmensual', icon: '📈', label: 'P&L Mensual' },
+]
+
 const NAV_ITEMS = [
   { id: 'cotizador', icon: '⚖️', label: 'Cotizador de flete' },
   { id: 'pricing', icon: '💰', label: 'Pricing ML' },
   { id: 'catalogo', icon: '🛍️', label: 'Catálogo' },
   { id: 'importaciones', icon: '📦', label: 'Importaciones' },
+  { id: 'meli', icon: '🛒', label: 'ML Publicaciones' },
 ]
 
 const NAV_BOTTOM = [
@@ -32,32 +38,46 @@ function NavBtn({ item, active, onChangeView }) {
   )
 }
 
-export default function SideNav({ view, onChangeView }) {
+export default function SideNav({ view, onChangeView, isOpen, onClose }) {
+  const handleNav = (id) => {
+    onChangeView(id)
+    onClose?.()
+  }
+
   return (
-    <nav className="side-nav">
-      {NAV_TOP.map(item => (
-        <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={onChangeView} />
-      ))}
+    <>
+      <div className={`nav-overlay ${isOpen ? 'active' : ''}`} onClick={onClose} />
+      <nav className={`side-nav ${isOpen ? 'mobile-open' : ''}`}>
+        {NAV_TOP.map(item => (
+          <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={handleNav} />
+        ))}
 
-      <div className="nav-sep" />
-      <div className="nav-section-label">Herramientas</div>
+        <div className="nav-sep" />
+        <div className="nav-section-label">Análisis</div>
+        {NAV_ANALYSIS.map(item => (
+          <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={handleNav} />
+        ))}
 
-      {NAV_ITEMS.map(item => (
-        <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={onChangeView} />
-      ))}
+        <div className="nav-sep" />
+        <div className="nav-section-label">Herramientas</div>
 
-      <div className="nav-sep" />
+        {NAV_ITEMS.map(item => (
+          <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={handleNav} />
+        ))}
 
-      {NAV_BOTTOM.map(item => (
-        <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={onChangeView} />
-      ))}
+        <div className="nav-sep" />
 
-      <div style={{ marginTop: 'auto' }} />
-      <div className="nav-sep" />
+        {NAV_BOTTOM.map(item => (
+          <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={handleNav} />
+        ))}
 
-      {NAV_FOOTER.map(item => (
-        <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={onChangeView} />
-      ))}
-    </nav>
+        <div style={{ marginTop: 'auto' }} />
+        <div className="nav-sep" />
+
+        {NAV_FOOTER.map(item => (
+          <NavBtn key={item.id} item={item} active={view === item.id} onChangeView={handleNav} />
+        ))}
+      </nav>
+    </>
   )
 }

@@ -96,8 +96,10 @@ export default function PricingPanel({ aereo, maritimo }) {
   const [modoTarget, setModoTarget] = useState('precio')
   const [precioCustom, setPrecioCustom] = useState('')
   const [costoRapido, setCostoRapido] = useState('')
+  const [overrideIndep, setOverrideIndep] = useState(false)
 
-  const modoRapido = !aereo && !maritimo
+  const hasImported = !!(aereo && maritimo)
+  const modoRapido = !hasImported || overrideIndep
 
   const base = modo === 'aereo' ? aereo : maritimo
   const costoARS = modoRapido
@@ -129,34 +131,49 @@ export default function PricingPanel({ aereo, maritimo }) {
 
   return (
     <div className="card" style={{ marginTop: 4 }}>
-      <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between' }}>
+      <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <span>Calculadora de pricing — Mercado Libre</span>
-        {!modoRapido && (
-          <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {hasImported && (
             <button
-              onClick={() => setModo('aereo')}
+              onClick={() => { setOverrideIndep(v => !v); setCostoRapido('') }}
               style={{
-                padding: '3px 10px', borderRadius: 6, border: '1.5px solid',
+                padding: '3px 10px', borderRadius: 6, border: '1.5px solid var(--line)',
                 cursor: 'pointer', fontSize: 11, fontWeight: 700,
-                background: modo === 'aereo' ? 'var(--aereo-bg)' : 'var(--bg)',
-                color: modo === 'aereo' ? 'var(--aereo)' : 'var(--ink-mute)',
-                borderColor: modo === 'aereo' ? 'var(--aereo)' : 'var(--line)',
+                background: overrideIndep ? 'var(--brand-light)' : 'var(--bg)',
+                color: overrideIndep ? 'var(--brand)' : 'var(--ink-mute)',
+                borderColor: overrideIndep ? 'var(--brand-mid)' : 'var(--line)',
               }}>
-              ✈ Aéreo
+              {overrideIndep ? '↩ Usar costo del cotizador' : '✏ Ingresar costo propio'}
             </button>
-            <button
-              onClick={() => setModo('maritimo')}
-              style={{
-                padding: '3px 10px', borderRadius: 6, border: '1.5px solid',
-                cursor: 'pointer', fontSize: 11, fontWeight: 700,
-                background: modo === 'maritimo' ? 'var(--maritimo-bg)' : 'var(--bg)',
-                color: modo === 'maritimo' ? 'var(--maritimo)' : 'var(--ink-mute)',
-                borderColor: modo === 'maritimo' ? 'var(--maritimo)' : 'var(--line)',
-              }}>
-              🚢 Marítimo
-            </button>
-          </div>
-        )}
+          )}
+          {!modoRapido && (
+            <>
+              <button
+                onClick={() => setModo('aereo')}
+                style={{
+                  padding: '3px 10px', borderRadius: 6, border: '1.5px solid',
+                  cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                  background: modo === 'aereo' ? 'var(--aereo-bg)' : 'var(--bg)',
+                  color: modo === 'aereo' ? 'var(--aereo)' : 'var(--ink-mute)',
+                  borderColor: modo === 'aereo' ? 'var(--aereo)' : 'var(--line)',
+                }}>
+                ✈ Aéreo
+              </button>
+              <button
+                onClick={() => setModo('maritimo')}
+                style={{
+                  padding: '3px 10px', borderRadius: 6, border: '1.5px solid',
+                  cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                  background: modo === 'maritimo' ? 'var(--maritimo-bg)' : 'var(--bg)',
+                  color: modo === 'maritimo' ? 'var(--maritimo)' : 'var(--ink-mute)',
+                  borderColor: modo === 'maritimo' ? 'var(--maritimo)' : 'var(--line)',
+                }}>
+                🚢 Marítimo
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="card-body">
@@ -183,7 +200,9 @@ export default function PricingPanel({ aereo, maritimo }) {
               </div>
             </div>
             <p className="form-hint" style={{ marginTop: 6 }}>
-              Completá el formulario de importación para calcular el costo exacto con impuestos y flete.
+              {hasImported && overrideIndep
+                ? 'Ingresá cualquier costo para simular — o usá el botón de arriba para volver al costo calculado.'
+                : 'Completá el cotizador de flete para calcular el costo exacto con impuestos y flete.'}
             </p>
           </div>
         )}
@@ -212,7 +231,7 @@ export default function PricingPanel({ aereo, maritimo }) {
         )}
 
         {/* Config costos variables */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginBottom: 16 }}>
+        <div className="pct-inputs-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginBottom: 16 }}>
           {[
             { label: '%ML', val: mlPct, set: setMlPct, hint: 'Comisión ML' },
             { label: '%Ads', val: adsPct, set: setAdsPct, hint: 'Publicidad' },
@@ -242,7 +261,7 @@ export default function PricingPanel({ aereo, maritimo }) {
         </div>
 
         {/* Target o precio manual */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+        <div className="pricing-target-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
           <div>
             <label className="form-label">Target de margen</label>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -331,6 +350,7 @@ export default function PricingPanel({ aereo, maritimo }) {
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-mute)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
               Escenarios de rentabilidad ({modoTarget === 'precio' ? '% sobre precio' : '% sobre costo'})
             </div>
+            <div style={{ overflowX: 'auto' }}>
             <table className="breakdown-table">
               <thead>
                 <tr>
@@ -377,6 +397,7 @@ export default function PricingPanel({ aereo, maritimo }) {
                 })}
               </tbody>
             </table>
+            </div>
 
             {/* ── Punto de equilibrio ── */}
             <BreakevenSection

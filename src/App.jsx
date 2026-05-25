@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'
+import { ToastProvider, useToast } from './contexts/ToastContext.jsx'
 import Header from './components/Header.jsx'
 import SideNav from './components/SideNav.jsx'
 import InicioPanel from './components/InicioPanel.jsx'
@@ -11,9 +12,13 @@ import PricingPanel from './components/PricingPanel.jsx'
 import ImportacionesPanel from './components/ImportacionesPanel.jsx'
 import CatalogoPanel from './components/CatalogoPanel.jsx'
 import SettingsPanel from './components/SettingsPanel.jsx'
+import MLPublicacionesPanel from './components/MLPublicacionesPanel.jsx'
+import DashboardSaludPanel from './components/DashboardSaludPanel.jsx'
+import PLMensualPanel from './components/PLMensualPanel.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import { calcularComparativa, DEFAULTS } from './lib/calculations.js'
 import { saveSimulacion, addProducto } from './lib/db.js'
+import { saveMeliConnection } from './lib/meli.js'
 
 const initialValues = {
   producto: '',
@@ -53,7 +58,9 @@ const initialValues = {
 
 function AppInner() {
   const { session, profile, loading, signOut } = useAuth()
+  const showToast = useToast()
   const [view, setView] = useState('inicio')
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [values, setValues] = useState(initialValues)
   const [savedFlash, setSavedFlash] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -66,6 +73,25 @@ function AppInner() {
     document.documentElement.classList.toggle('dark', isDark)
     try { localStorage.setItem('suki_dark', isDark) } catch {}
   }, [isDark])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('meli_ok') === '1') {
+      const at = params.get('meli_at')
+      const rt = params.get('meli_rt')
+      const uid = params.get('meli_uid')
+      const exp = params.get('meli_exp')
+      if (at && uid) {
+        saveMeliConnection({ access_token: at, refresh_token: rt, user_id: uid, expires_at: Number(exp) })
+        showToast('Cuenta de MercadoLibre conectada ✓', 'success')
+        setView('meli')
+      }
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (params.get('meli_error')) {
+      showToast(`Error ML: ${params.get('meli_error')}`, 'error')
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
 
   useEffect(() => {
     fetch('https://dolarapi.com/v1/dolares')
@@ -119,6 +145,7 @@ function AppInner() {
     setShowModal(false)
     setSavedFlash(true)
     setTimeout(() => setSavedFlash(false), 2000)
+    showToast(catalogo ? 'Simulación guardada y agregada al catálogo ✓' : 'Simulación guardada ✓', 'success')
   }
 
   const handleRestore = (sim) => {
@@ -147,14 +174,17 @@ function AppInner() {
           onClose={() => setShowModal(false)}
         />
       )}
-      <Header isDark={isDark} onToggleDark={() => setIsDark(d => !d)} profile={profile} onSignOut={signOut} />
+      <Header isDark={isDark} onToggleDark={() => setIsDark(d => !d)} profile={profile} onSignOut={signOut} onToggleNav={() => setMobileNavOpen(v => !v)} />
       <div className="app-body">
-        <SideNav view={view} onChangeView={setView} />
+        <SideNav view={view} onChangeView={setView} isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
         <main className="app-content">
 
           {view === 'inicio' && (
             <InicioPanel onNavigate={setView} tcRates={tcRates} isDark={isDark} />
           )}
+
+          {view === 'dashboard' && <DashboardSaludPanel onNavigate={setView} />}
+          {view === 'plmensual' && <PLMensualPanel onNavigate={setView} />}
 
           {view === 'cotizador' && (
             <>
@@ -169,7 +199,7 @@ function AppInner() {
                   <InputPanel values={values} onChange={handleChange} />
                 </div>
                 <div className="results-stack">
-                  <ResultsPanel results={results} producto={values.producto} onSave={() => results && setShowModal(true)} savedFlash={savedFlash} />
+                  <ResultsPanel results={results} inputs={values} producto={values.producto} onSave={() => results && setShowModal(true)} savedFlash={savedFlash} />
                 </div>
               </div>
             </>
@@ -182,7 +212,7 @@ function AppInner() {
                   <h1 className="page-title">Pricing ML</h1>
                   <p className="page-subtitle">
                     Calculadora de precios para Mercado Libre · Márgenes · Punto de equilibrio
-                    {results && <span className="page-subtitle-badge">· Usando costo del cotizador</span>}
+                    {results && <span className="page-subtitle-badge">· Costo del cotizador disponible</span>}
                   </p>
                 </div>
               </div>
@@ -194,6 +224,7 @@ function AppInner() {
 
           {view === 'catalogo' && <CatalogoPanel onNavigate={setView} />}
           {view === 'importaciones' && <ImportacionesPanel />}
+          {view === 'meli' && <MLPublicacionesPanel />}
           {view === 'historial' && <HistorialPanel onRestore={handleRestore} />}
           {view === 'ajustes' && <SettingsPanel profile={profile} />}
 
@@ -206,7 +237,9 @@ function AppInner() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppInner />
+      <ToastProvider>
+        <AppInner />
+      </ToastProvider>
     </AuthProvider>
   )
 }

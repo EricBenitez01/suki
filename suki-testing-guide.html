@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Suki — Guía para Tester · Kyrax Technology</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; background: #fff; font-size: 13px; line-height: 1.6; }
+
+  .cover {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white; text-align: center; padding: 40px;
+    page-break-after: always;
+  }
+  .cover-logo { font-size: 56px; font-weight: 900; letter-spacing: -2px; color: #a78bfa; margin-bottom: 8px; }
+  .cover-sub { font-size: 16px; color: #c4b5fd; margin-bottom: 48px; letter-spacing: 3px; text-transform: uppercase; }
+  .cover-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+  .cover-desc { font-size: 15px; color: #c4b5fd; max-width: 480px; line-height: 1.7; margin-bottom: 48px; }
+  .cover-meta { font-size: 12px; color: #a78bfa; border-top: 1px solid rgba(167,139,250,0.3); padding-top: 24px; width: 100%; max-width: 480px; }
+
+  .page { padding: 40px 48px; max-width: 800px; margin: 0 auto; }
+  @media print {
+    .page { padding: 24px 32px; }
+    .section { page-break-inside: avoid; }
+  }
+
+  h1 { font-size: 22px; font-weight: 800; color: #1a1a2e; border-bottom: 3px solid #7c3aed; padding-bottom: 8px; margin: 32px 0 16px; }
+  h2 { font-size: 16px; font-weight: 700; color: #4c1d95; margin: 24px 0 10px; }
+  h3 { font-size: 13px; font-weight: 700; color: #6d28d9; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  p { margin-bottom: 10px; color: #374151; }
+  ul, ol { margin: 8px 0 12px 20px; color: #374151; }
+  li { margin-bottom: 4px; }
+
+  .tag {
+    display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;
+    margin-right: 4px; margin-bottom: 4px;
+  }
+  .tag-green { background: #d1fae5; color: #065f46; }
+  .tag-blue  { background: #dbeafe; color: #1e40af; }
+  .tag-purple{ background: #ede9fe; color: #5b21b6; }
+  .tag-red   { background: #fee2e2; color: #991b1b; }
+  .tag-yellow{ background: #fef3c7; color: #92400e; }
+
+  .card {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 16px; background: #fafafa;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px;
+  }
+  .card-icon { font-size: 20px; }
+
+  .step {
+    display: flex; gap: 12px; margin-bottom: 12px;
+  }
+  .step-num {
+    min-width: 24px; height: 24px; border-radius: 50%;
+    background: #7c3aed; color: white; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12px; }
+  th { background: #4c1d95; color: white; padding: 8px 12px; text-align: left; font-weight: 600; }
+  td { padding: 7px 12px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  tr:nth-child(even) td { background: #f9fafb; }
+
+  .alert {
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+    display: flex; gap: 10px; align-items: flex-start; font-size: 12px;
+  }
+  .alert-info    { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+  .alert-warning { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92400e; }
+  .alert-success { background: #f0fdf4; border-left: 4px solid #22c55e; color: #14532d; }
+
+  .url { font-family: monospace; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #6d28d9; }
+
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+
+  .role-table td:first-child { font-weight: 600; }
+  .check { color: #16a34a; font-weight: 700; }
+  .cross { color: #dc2626; font-weight: 700; }
+
+  .footer { text-align: center; color: #9ca3af; font-size: 11px; margin-top: 48px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <div class="cover-logo">Suki</div>
+  <div class="cover-sub">Kyrax Technology</div>
+  <div class="cover-title">Guía de Testing Manual</div>
+  <div class="cover-desc">
+    Documento de referencia para el tester. Describe todas las funcionalidades
+    disponibles, flujos de uso, casos a verificar y comportamientos esperados.
+  </div>
+  <div class="cover-meta">
+    Versión 0.4.0 &nbsp;·&nbsp; Mayo 2026 &nbsp;·&nbsp;
+    <span class="url">https://suki-kyrax.vercel.app</span>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ─── QUÉ ES SUKI ─── -->
+<h1>¿Qué es Suki?</h1>
+<p>
+  Suki es una plataforma interna de Kyrax Technology para gestionar importaciones de productos.
+  Centraliza el cálculo de costos landed (costo del producto puesto en Argentina),
+  la simulación de pricing para Mercado Libre, el historial de cotizaciones y el catálogo de productos con márgenes.
+</p>
+<p>Reemplaza las planillas Excel manuales con una herramienta web colaborativa, con roles de usuario y datos compartidos en tiempo real entre el equipo.</p>
+
+<div class="alert alert-info">
+  <span>🌐</span>
+  <span>URL de producción: <strong>https://suki-kyrax.vercel.app</strong></span>
+</div>
+
+<!-- ─── ROLES ─── -->
+<h1>Roles de Usuario</h1>
+<table class="role-table">
+  <tr><th>Rol</th><th>Quién lo tiene</th><th>Puede leer</th><th>Puede crear/editar</th><th>Puede eliminar</th><th>Puede ver equipo</th></tr>
+  <tr>
+    <td>Admin</td><td>Primer usuario del equipo</td>
+    <td class="check">✓ Todo</td><td class="check">✓ Todo</td>
+    <td class="check">✓ Cualquier registro</td><td class="check">✓ Código de equipo</td>
+  </tr>
+  <tr>
+    <td>Operador</td><td>Miembros que se unen con código</td>
+    <td class="check">✓ Todo</td><td class="check">✓ Todo</td>
+    <td class="check">✓ Solo los propios</td><td class="cross">✗</td>
+  </tr>
+  <tr>
+    <td>Viewer</td><td>(Futuro)</td>
+    <td class="check">✓ Todo</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td>
+  </tr>
+</table>
+
+<div class="alert alert-warning">
+  <span>⚠️</span>
+  <span>Todos los datos están aislados por equipo (org). Un usuario de otro equipo no puede ver ni modificar los datos de Kyrax.</span>
+</div>
+
+<!-- ─── ACCESO ─── -->
+<h1>Acceso y Registro</h1>
+
+<div class="card">
+  <div class="card-header"><span class="card-icon">👤</span> Crear primera cuenta (Admin)</div>
+  <div class="step"><div class="step-num">1</div><div>Ir a <span class="url">suki-kyrax.vercel.app</span> → tab <strong>"Crear cuenta"</strong></div></div>
+  <div class="step"><div class="step-num">2</div><div>Completar Nombre, Email y Contraseña (mín. 6 caracteres). Dejar <em>Código de equipo</em> vacío.</div></div>
+  <div class="step"><div class="step-num">3</div><div>Click en <strong>Crear cuenta</strong>. El sistema crea automáticamente un equipo nuevo y asigna el rol <strong>admin</strong>.</div></div>
+  <div class="step"><div class="step-num">4</div><div>Acceso inmediato a la app. No requiere confirmación por email.</div></div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-icon">🤝</span> Unirse a un equipo existente (Operador)</div>
+  <div class="step"><div class="step-num">1</div><div>El Admin copia su código desde <strong>Ajustes → Código de equipo → Copiar</strong>.</div></div>
+  <div class="step"><div class="step-num">2</div><div>El nuevo usuario se registra pegando ese UUID en el campo <em>Código de equipo</em>.</div></div>
+  <div class="step"><div class="step-num">3</div><div>Queda como <strong>operador</strong> del mismo equipo — ve todos los datos compartidos.</div></div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-icon">🔑</span> Iniciar sesión</div>
+  <div class="step"><div class="step-num">1</div><div>Tab <strong>"Ingresar"</strong> → Email + Contraseña → Click en <em>Ingresar</em>.</div></div>
+  <div class="step"><div class="step-num">2</div><div>Al ingresar se muestra el nombre y rol en el header superior derecho.</div></div>
+  <div class="step"><div class="step-num">3</div><div>El botón <strong>"Salir"</strong> cierra la sesión y vuelve a la pantalla de login.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ─── MÓDULOS ─── -->
+<h1>Módulos de la Aplicación</h1>
+
+<!-- COTIZADOR -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">🧮</span> Cotizador de Importaciones</div>
+  <span class="tag tag-purple">Módulo principal</span>
+  <p style="margin-top:10px">Calcula el costo landed (costo real en Argentina) de un producto importado, comparando flete aéreo vs. marítimo.</p>
+
+  <h3>Datos de entrada</h3>
+  <ul>
+    <li><strong>Producto:</strong> nombre descriptivo de lo que se importa</li>
+    <li><strong>FOB Unit (USD):</strong> precio del proveedor por unidad</li>
+    <li><strong>Unidades:</strong> cantidad de piezas en el pedido</li>
+    <li><strong>FOB Total (USD):</strong> calculado automáticamente (FOB × Unidades)</li>
+    <li><strong>Tipo de cambio (ARS/USD):</strong> dólar oficial o el que corresponda</li>
+    <li><strong>Flete aéreo / marítimo (USD):</strong> cotización del transportista</li>
+    <li><strong>Seguro (%):</strong> porcentaje sobre CIF</li>
+    <li><strong>Impuestos y aranceles (%):</strong> derechos de importación</li>
+    <li><strong>Gastos locales (ARS):</strong> despachante, almacenaje, traslado, etc.</li>
+  </ul>
+
+  <h3>Comportamiento especial</h3>
+  <ul>
+    <li>Modificar FOB Unit o Unidades recalcula el FOB Total automáticamente — y viceversa.</li>
+    <li>Si se modifica Unidades, el precio unitario se conserva y el total se ajusta.</li>
+    <li>Si se modifica FOB Total directamente, el unitario se recalcula.</li>
+  </ul>
+
+  <h3>Resultados (tiempo real)</h3>
+  <ul>
+    <li>Costo CIF (FOB + Flete + Seguro)</li>
+    <li>Derechos de importación en ARS</li>
+    <li>Gastos locales</li>
+    <li><strong>Costo landed total ARS y por unidad</strong></li>
+    <li>Comparación aéreo vs. marítimo lado a lado</li>
+    <li>Badge verde/rojo indicando cuál modo conviene</li>
+  </ul>
+
+  <h3>Guardar simulación</h3>
+  <ul>
+    <li>Click en <strong>"Guardar simulación"</strong> abre un modal.</li>
+    <li>Se puede poner título y notas.</li>
+    <li>Checkbox opcional <strong>"Agregar al Catálogo"</strong>: guarda el producto con su costo como base de pricing.</li>
+  </ul>
+
+  <h3>Cargar producto guardado</h3>
+  <ul>
+    <li>Click en <strong>"Cargar producto guardado"</strong> lista los productos previamente guardados.</li>
+    <li>Seleccionando uno, precarga todos los valores del formulario.</li>
+  </ul>
+</div>
+
+<!-- HISTORIAL -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">📋</span> Historial de Simulaciones</div>
+  <span class="tag tag-blue">Lectura y gestión</span>
+  <p style="margin-top:10px">Lista todas las simulaciones guardadas por el equipo, ordenadas de más reciente a más antigua.</p>
+  <ul>
+    <li>Muestra: nombre, fecha, ganador (aéreo/marítimo), notas.</li>
+    <li>Click en una fila → expande el detalle completo (todos los inputs + resultados).</li>
+    <li>Botón <strong>"Eliminar"</strong> por simulación (admin elimina cualquiera, operador solo las propias).</li>
+    <li>Botón <strong>"Limpiar todo"</strong> para borrar todo el historial (solo admin).</li>
+    <li>Buscador por nombre de simulación.</li>
+  </ul>
+</div>
+
+<!-- PRICING ML -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">💰</span> Pricing Mercado Libre</div>
+  <span class="tag tag-green">Análisis de márgenes</span>
+  <p style="margin-top:10px">Simula el margen neto de un producto vendido en Mercado Libre, considerando todas las comisiones.</p>
+
+  <h3>Parámetros configurables</h3>
+  <ul>
+    <li><strong>Precio de venta (ARS):</strong> el precio al que se publica en ML</li>
+    <li><strong>Costo unitario (ARS):</strong> costo landed del producto</li>
+    <li><strong>Comisión ML (%):</strong> por defecto 25%</li>
+    <li><strong>Ads (%):</strong> inversión en publicidad, por defecto 12%</li>
+    <li><strong>IVA sobre comisiones (%):</strong> por defecto 14%</li>
+    <li><strong>IIBB (%):</strong> ingresos brutos</li>
+    <li><strong>Otros (%)</strong></li>
+  </ul>
+
+  <h3>Resultados</h3>
+  <ul>
+    <li>Precio neto recibido (después de todas las deducciones)</li>
+    <li>Margen ARS por unidad</li>
+    <li>Margen % sobre precio de venta</li>
+    <li>Tabla de escenarios del <strong>5% al 150%</strong> de margen objetivo — filas clickeables para simular "¿a qué precio necesito vender para lograr X% de margen?"</li>
+  </ul>
+</div>
+
+<!-- CATÁLOGO -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">🛍️</span> Catálogo de Productos</div>
+  <span class="tag tag-purple">Central de pricing</span>
+  <p style="margin-top:10px">Base de datos centralizada de productos con costos y parámetros de pricing. Reemplaza el Excel de productos.</p>
+
+  <h3>Vista Lista</h3>
+  <ul>
+    <li>Tabla con todos los productos: nombre, SKU, costo ARS, precio actual, margen%, fuente del costo.</li>
+    <li>Buscador en tiempo real por nombre o SKU.</li>
+    <li>Botón <strong>"+ Nuevo producto"</strong> para agregar manualmente.</li>
+    <li>Click en una fila → abre el detalle del producto.</li>
+  </ul>
+
+  <h3>Vista Detalle</h3>
+  <ul>
+    <li><strong>Costo base:</strong> muestra costo ARS y USD. Badge indica si vino de cotizador, importación o se cargó manual.</li>
+    <li><strong>↻ Actualizar costo:</strong> si el producto está vinculado a una simulación o importación, actualiza automáticamente al costo más reciente.</li>
+    <li><strong>Pricing ML interactivo:</strong> mismo motor que el módulo Pricing, con parámetros editables y tabla de escenarios.</li>
+    <li><strong>Vínculos:</strong> links directos a la simulación o importación de origen.</li>
+    <li>Botones <strong>Editar</strong> y <strong>Eliminar</strong> el producto.</li>
+  </ul>
+
+  <h3>Fuentes de costo (badges)</h3>
+  <ul>
+    <li><span class="tag tag-purple">⚖️ Cotizador</span> — vino de guardar una simulación</li>
+    <li><span class="tag tag-blue">📦 Importación</span> — se agregó desde el módulo Importaciones</li>
+    <li><span class="tag tag-yellow">Manual</span> — cargado a mano</li>
+  </ul>
+</div>
+
+<!-- IMPORTACIONES -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">📦</span> Importaciones</div>
+  <span class="tag tag-blue">Registro de compras</span>
+  <p style="margin-top:10px">Registra importaciones completas con múltiples productos, calcula el costo por ítem y permite exportar al catálogo.</p>
+
+  <h3>Datos de una importación</h3>
+  <ul>
+    <li>Fecha, proveedor, tipo de cambio</li>
+    <li>Costos generales: flete aéreo, flete marítimo, seguro, aranceles, gastos locales</li>
+    <li>Lista de productos: nombre, SKU, cantidad, FOB unit — el sistema calcula el costo landed por producto prorrateando los costos generales</li>
+  </ul>
+
+  <h3>Acciones</h3>
+  <ul>
+    <li><strong>Nueva importación:</strong> formulario completo con N productos.</li>
+    <li><strong>Editar:</strong> modificar cualquier dato.</li>
+    <li><strong>Eliminar:</strong> con confirmación.</li>
+    <li><strong>→ Catálogo:</strong> botón en cada producto de la importación para enviarlo directamente al Catálogo con su costo calculado.</li>
+  </ul>
+</div>
+
+<!-- AJUSTES -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">⚙️</span> Ajustes</div>
+  <span class="tag tag-yellow">Cuenta y datos</span>
+
+  <h3>Sección Mi Cuenta</h3>
+  <ul>
+    <li>Muestra nombre y rol del usuario.</li>
+    <li>Si es <strong>admin</strong>: muestra el <strong>Código de equipo</strong> (UUID) con botón Copiar para compartir con nuevos miembros.</li>
+  </ul>
+
+  <h3>Datos almacenados</h3>
+  <ul>
+    <li>Contador de simulaciones, importaciones y productos guardados.</li>
+    <li><strong>Exportar todo:</strong> descarga un JSON con todos los datos del equipo (backup).</li>
+    <li><strong>Importar backup:</strong> restaura datos desde un JSON exportado previamente.</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ─── CASOS DE TEST ─── -->
+<h1>Casos de Test Sugeridos</h1>
+
+<h2>🔐 Autenticación</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>1</td><td>Registrarse sin código de equipo</td><td>Crea equipo nuevo, rol admin, acceso inmediato</td></tr>
+  <tr><td>2</td><td>Registrarse con código de equipo válido</td><td>Se une al equipo como operador</td></tr>
+  <tr><td>3</td><td>Registrarse con código inválido</td><td>Crea equipo nuevo (ignora el código malformado)</td></tr>
+  <tr><td>4</td><td>Ingresar con email/contraseña incorrectos</td><td>Muestra error en español</td></tr>
+  <tr><td>5</td><td>Click en "Salir"</td><td>Vuelve al login, sesión cerrada</td></tr>
+</table>
+
+<h2>🧮 Cotizador</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>6</td><td>Llenar FOB Unit + Unidades</td><td>FOB Total = Unit × Unidades</td></tr>
+  <tr><td>7</td><td>Cambiar Unidades (con Unit ya cargado)</td><td>Total se recalcula, Unit se mantiene</td></tr>
+  <tr><td>8</td><td>Cargar todos los campos y observar resultados</td><td>Costo landed se actualiza en tiempo real</td></tr>
+  <tr><td>9</td><td>Guardar simulación con título y notas</td><td>Aparece en Historial</td></tr>
+  <tr><td>10</td><td>Guardar + "Agregar al catálogo"</td><td>Producto aparece en Catálogo con badge Cotizador</td></tr>
+</table>
+
+<h2>📋 Historial</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>11</td><td>Ver lista de simulaciones</td><td>Orden descendente por fecha</td></tr>
+  <tr><td>12</td><td>Click en una fila</td><td>Expande detalle completo</td></tr>
+  <tr><td>13</td><td>Buscar por nombre</td><td>Filtra en tiempo real</td></tr>
+  <tr><td>14</td><td>Eliminar una simulación (operador)</td><td>Solo puede eliminar las propias</td></tr>
+</table>
+
+<h2>💰 Pricing ML</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>15</td><td>Ingresar precio de venta y costo</td><td>Margen % calculado en tiempo real</td></tr>
+  <tr><td>16</td><td>Click en una fila de la tabla de escenarios</td><td>Aplica ese % y recalcula el precio objetivo</td></tr>
+  <tr><td>17</td><td>Cambiar comisión ML</td><td>Todos los cálculos se actualizan</td></tr>
+  <tr><td>18</td><td>Verificar que la tabla llega a 150%</td><td>Última fila = 150%</td></tr>
+</table>
+
+<h2>🛍️ Catálogo</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>19</td><td>Crear producto manual</td><td>Aparece en lista con badge Manual</td></tr>
+  <tr><td>20</td><td>Buscar por nombre y por SKU</td><td>Filtra correctamente</td></tr>
+  <tr><td>21</td><td>Abrir detalle y editar parámetros ML</td><td>Margen se recalcula al instante</td></tr>
+  <tr><td>22</td><td>Actualizar costo desde simulación vinculada</td><td>Toma el costo de la simulación original</td></tr>
+  <tr><td>23</td><td>Eliminar producto</td><td>Sale de la lista inmediatamente</td></tr>
+</table>
+
+<h2>📦 Importaciones</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>24</td><td>Crear importación con 2+ productos</td><td>Costos prorrateados correctamente</td></tr>
+  <tr><td>25</td><td>Enviar producto al catálogo (→ Catálogo)</td><td>Flash de confirmación, aparece en Catálogo con badge Importación</td></tr>
+  <tr><td>26</td><td>Editar importación existente</td><td>Datos actualizados, costos recalculados</td></tr>
+</table>
+
+<h2>⚙️ Ajustes</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>27</td><td>Verificar rol y nombre en Ajustes</td><td>Coincide con el registro</td></tr>
+  <tr><td>28</td><td>Copiar código de equipo (admin)</td><td>Se copia al portapapeles, flash de confirmación</td></tr>
+  <tr><td>29</td><td>Exportar datos</td><td>Descarga un archivo .json con todas las simulaciones, importaciones y productos</td></tr>
+  <tr><td>30</td><td>Importar el backup exportado</td><td>Datos restaurados, contadores actualizados</td></tr>
+</table>
+
+<h2>🌙 UI / UX</h2>
+<table>
+  <tr><th>#</th><th>Acción</th><th>Resultado esperado</th></tr>
+  <tr><td>31</td><td>Toggle modo oscuro (☀️/🌙 en header)</td><td>Toda la app cambia de tema, sin números invisibles</td></tr>
+  <tr><td>32</td><td>Navegar entre todos los módulos</td><td>Sin pantallas en blanco ni errores</td></tr>
+  <tr><td>33</td><td>Recargar la página estando logueado</td><td>Sesión persiste, no vuelve al login</td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ─── DATOS CONOCIDOS ─── -->
+<h1>Limitaciones Conocidas (v0.4.0)</h1>
+<ul>
+  <li>No hay recuperación de contraseña (en desarrollo).</li>
+  <li>No hay rol Viewer activo aún — está definido en la base de datos pero la UI no permite asignarlo.</li>
+  <li>La app requiere conexión a internet (datos en Supabase, no funciona offline).</li>
+  <li>El plan gratuito de Supabase tiene un límite de 3 emails de confirmación por hora — si el registro falla por rate limit, esperar unos minutos.</li>
+</ul>
+
+<div class="footer">
+  Suki v0.4.0 · Kyrax Technology · Documento generado para testing interno · Mayo 2026
+</div>
+
+</div>
+</body>
+</html>

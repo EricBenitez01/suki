@@ -5,3 +5,9 @@ dist/
 
 .vercel
 .claude/
+
+# Deploy scripts — tienen credenciales hardcodeadas, solo uso local
+deploy-vercel.mjs
+deploy-api.mjs
+deploy-landing.mjs
+set-meli-env.mjs
