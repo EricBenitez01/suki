@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { loadProductos, addProducto, updateProducto, deleteProducto, loadSimulaciones } from '../lib/db.js'
+import { loadProductos, addProducto, updateProducto, deleteProducto, loadSimulaciones, loadImportaciones } from '../lib/db.js'
 import { calcPricing, calcularComparativa, DEFAULTS, fmtARS, fmtUSD, fmt } from '../lib/calculations.js'
 import { getCachedItems, getMeliConnection } from '../lib/meli.js'
 import ConfirmModal from './ConfirmModal.jsx'
@@ -8,9 +8,6 @@ import { useToast } from '../contexts/ToastContext.jsx'
 
 const ESCENARIOS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
 
-function loadImportaciones() {
-  try { return JSON.parse(localStorage.getItem('suki_importaciones')) || [] } catch { return [] }
-}
 
 function SourceBadge({ source }) {
   const map = {
@@ -145,7 +142,7 @@ function MLItemSelector({ value, onChange }) {
 }
 
 // ── NuevoProductoForm ──────────────────────────────────────────────────────────
-function NuevoProductoForm({ onSave, onCancel, existingProductos = [] }) {
+function NuevoProductoForm({ onSave, onCancel, existingProductos = [], importaciones = [] }) {
   const [nombre, setNombre] = useState('')
   const [sku, setSku] = useState('')
   const [costoSource, setCostoSource] = useState('manual')
@@ -165,7 +162,6 @@ function NuevoProductoForm({ onSave, onCancel, existingProductos = [] }) {
   const [importCosto, setImportCosto] = useState(null)
 
   const [simulaciones, setSimulaciones] = useState([])
-  const importaciones = loadImportaciones()
   const selectedImport = importaciones.find(i => i.id === parseInt(importId))
 
   useEffect(() => { loadSimulaciones().then(setSimulaciones) }, [])
@@ -372,7 +368,7 @@ function NuevoProductoForm({ onSave, onCancel, existingProductos = [] }) {
 }
 
 // ── ProductoDetail ─────────────────────────────────────────────────────────────
-function ProductoDetail({ producto, onBack, onUpdate, onDelete, onNavigate }) {
+function ProductoDetail({ producto, onBack, onUpdate, onDelete, onNavigate, importaciones = [] }) {
   const showToast = useToast()
   const [mlPct, setMlPct] = useState(producto.mlPct ?? 25)
   const [adsPct, setAdsPct] = useState(producto.adsPct ?? 12)
@@ -431,7 +427,7 @@ function ProductoDetail({ producto, onBack, onUpdate, onDelete, onNavigate }) {
         flashUpdate()
       }
     } else if (producto.costoSource === 'importacion' && producto.importacionId) {
-      const imp = loadImportaciones().find(i => i.id === producto.importacionId)
+      const imp = importaciones.find(i => i.id === producto.importacionId)
       if (imp) {
         const fleteMode = imp.form.fleteMode || 'maritimo'
         const costo = calcImportProductoCosto(imp, producto.importacionProductoId, fleteMode)
@@ -456,7 +452,7 @@ function ProductoDetail({ producto, onBack, onUpdate, onDelete, onNavigate }) {
     ? simulaciones.find(s => s.id === producto.simulacionId)
     : null
   const vinculoImp = producto.importacionId
-    ? loadImportaciones().find(i => i.id === producto.importacionId)
+    ? importaciones.find(i => i.id === producto.importacionId)
     : null
 
   return (
@@ -880,6 +876,7 @@ export default function CatalogoPanel({ onNavigate }) {
         onUpdate={handleUpdate}
         onDelete={handleDelete}
         onNavigate={onNavigate}
+        importaciones={importaciones}
       />
     )
   }
@@ -911,7 +908,7 @@ export default function CatalogoPanel({ onNavigate }) {
 
       {showNuevo && (
         <div style={{ marginTop: 16 }}>
-          <NuevoProductoForm onSave={handleNuevo} onCancel={() => setShowNuevo(false)} existingProductos={productos} />
+          <NuevoProductoForm onSave={handleNuevo} onCancel={() => setShowNuevo(false)} existingProductos={productos} importaciones={importaciones} />
         </div>
       )}
 

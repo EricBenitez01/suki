@@ -44,7 +44,7 @@ export default function PublicarMLModal({ producto, onClose, onPublished }) {
       finally { setCatLoading(false) }
     }, 600)
     return () => clearTimeout(t)
-  }, [title])
+  }, [title, selectedCat])
 
   const handleCatSearch = async () => {
     if (!catQuery) return
