@@ -7,6 +7,7 @@ import { useToast } from '../contexts/ToastContext.jsx'
 import { fmtARS, fmt } from '../lib/calculations.js'
 import { loadProductos, addProducto, updateProducto } from '../lib/db.js'
 import AutoVincularModal from './AutoVincularModal.jsx'
+import ImportarCostosModal from './ImportarCostosModal.jsx'
 
 const STATUS_LABEL = {
   active:       { label: 'Activa',       color: 'var(--pos)',    bg: 'var(--pos-bg)' },
@@ -353,6 +354,7 @@ export default function MLPublicacionesPanel() {
   const [selectedItem, setSelectedItem] = useState(null)
   const [showAutoVincular, setShowAutoVincular] = useState(false)
   const [cargarCostoItem, setCargarCostoItem] = useState(null)
+  const [showImportarCostos, setShowImportarCostos] = useState(false)
 
   useEffect(() => {
     loadProductos().then(setProductos)
@@ -425,6 +427,13 @@ export default function MLPublicacionesPanel() {
 
   return (
     <div>
+      {showImportarCostos && (
+        <ImportarCostosModal
+          productos={productos}
+          onClose={() => setShowImportarCostos(false)}
+          onDone={refreshProductos}
+        />
+      )}
       {showAutoVincular && (
         <AutoVincularModal
           productos={productos}
@@ -453,6 +462,9 @@ export default function MLPublicacionesPanel() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button className="btn-sm primary" onClick={() => handleSync(false)} disabled={syncing}>
             {syncing ? '⟳ Sincronizando…' : '🔄 Sincronizar'}
+          </button>
+          <button className="btn-sm" onClick={() => setShowImportarCostos(true)}>
+            📥 Importar costos
           </button>
           {items.length > 0 && productos.some(p => !p.mlItemId) && (
             <button className="btn-sm" onClick={() => setShowAutoVincular(true)}>
