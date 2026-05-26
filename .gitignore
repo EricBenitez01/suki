@@ -6,6 +6,10 @@ dist/
 .vercel
 .claude/
 
+# E2E test secrets
+.env.test
+tests/.auth/
+
 # Deploy scripts — tienen credenciales hardcodeadas, solo uso local
 deploy-vercel.mjs
 deploy-api.mjs
